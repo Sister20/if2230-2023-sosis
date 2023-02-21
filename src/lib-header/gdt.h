@@ -11,12 +11,19 @@ extern struct GDTR _gdt_gdtr;
  * Segment Descriptor storing system segment information.
  * Struct defined exactly as Intel Manual Segment Descriptor definition (Figure 3-8 Segment Descriptor).
  * Manual can be downloaded at www.intel.com/content/www/us/en/architecture-and-technology/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.html/ 
- *
- * @param segment_low  16-bit lower-bit segment limit
- * @param base_low     16-bit lower-bit base address
- * @param base_mid     8-bit middle-bit base address
- * @param type_bit     4-bit contain type flags
- * @param non_system   1-bit contain system
+ * @param segment_low   16-bit lower-bit segment limit
+ * @param base_low      16-bit lower-bit base address
+ * @param base_mid      8-bit middle-bit base address
+ * @param type_bit      4-bit contain type flags
+ * @param non_system    1-bit contain system
+ * @param dpl           2-bit descriptor privilege level
+ * @param present       1-bit segment present flag
+ * @param segment_limit 4-bit higher-bit segment limit and attribute flags
+ * @param avl           1-bit available for system software use
+ * @param code_segment  1-bit code segment flag
+ * @param op_size       1-bit operation size flag
+ * @param glanularity   1-bit granularity flag
+ * @param base_high     8-bit higher-bit base address
  */
 struct SegmentDescriptor {
     // First 32-bit
@@ -27,9 +34,17 @@ struct SegmentDescriptor {
     uint8_t             base_mid;
     uint8_t type_bit   : 4;
     uint8_t non_system : 1;
-    // TODO : Continue GDT definition
+    uint8_t dpl        : 2;
+    uint8_t present    : 1;
+    uint8_t limit      : 4;
+    uint8_t avl        : 1;
+    uint8_t code_segment : 1;
+    uint8_t op_size    : 1;
+    uint8_t glanularity : 1;
+    uint8_t base_high  : 8;
 
 } __attribute__((packed));
+
 
 /**
  * Global Descriptor Table containing list of segment descriptor. One GDT already defined in memory.c.

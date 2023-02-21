@@ -6,6 +6,7 @@
 #include "lib-header/kernel_loader.h"
 
 void kernel_setup(void) {
+    enter_protected_mode(&_gdt_gdtr);
     framebuffer_clear();
     framebuffer_write(3, 8,  'H', 2, 0xF);
     framebuffer_write(3, 9,  'a', 2, 0xF);
