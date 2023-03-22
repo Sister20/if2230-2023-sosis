@@ -52,11 +52,11 @@ struct IDTGate {
 /**
  * Interrupt Descriptor Table, containing lists of IDTGate.
  * One IDT already defined in idt.c
- *
- * ...
+ * @param table Fixed-width array of IDTGate with size IDT_MAX_ENTRY_COUNT
  */
-// TODO : Implement
-// ...
+struct InterruptDescriptorTable {
+    struct IDTGate table[IDT_MAX_ENTRY_COUNT];
+} __attribute__((packed));
 
 /**
  * IDTR, carrying information where's the IDT located and size.
@@ -64,8 +64,10 @@ struct IDTGate {
  *
  * ...
  */
-// TODO : Implement
-// ...
+struct IDTR {
+    uint16_t                        size;
+    struct InterruptDescriptorTable *address;
+} __attribute__((packed));
 
 
 
