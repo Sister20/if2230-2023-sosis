@@ -1,6 +1,8 @@
 {
     "debug.onTaskErrors": "debugAnyway",
     "files.associations": {
-        "gdt.h": "c"
+        "gdt.h": "c",
+        "stdmem.h": "c",
+        "portio.h": "c"
     },
 }
