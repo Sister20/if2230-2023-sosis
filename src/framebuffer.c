@@ -3,8 +3,8 @@
 #include "lib-header/stdmem.h"
 #include "lib-header/portio.h"
 
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
+// VGA_WIDTH 80
+// VGA_HEIGHT 25
 
 static uint16_t *framebuffer = (uint16_t *)0xB8000;
 static uint8_t cursor_row = 0;
@@ -32,7 +32,7 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
 {
     uint16_t attrib = (bg << 4) | (fg & 0x0F);
     volatile uint16_t *where;
-    where = (volatile uint16_t *)0xB8000 + (row * 80 + col);
+    where = (volatile uint16_t *)0xB8000 + (row * VGA_WIDTH + col);
     *where = c | (attrib << 8);
 }
 
@@ -40,7 +40,7 @@ void framebuffer_clear(void)
 {
     uint8_t blank = (background_color << 4) | (foreground_color & 0xF);
     uint16_t space = (blank << 8) | ' ';
-    for (int i = 0; i < 80 * 25; i++)
+    for (int i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++)
     {
         framebuffer[i] = space;
     }
