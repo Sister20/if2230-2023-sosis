@@ -8,7 +8,8 @@
 #include "lib-header/kernel_loader.h"
 #include "lib-header/keyboard.h"
 
-void kernel_setup(void) {
+void kernel_setup(void)
+{
     // enter_protected_mode(&_gdt_gdtr);
     // framebuffer_clear();
     // framebuffer_write(3, 20,  'H', 0, 0xF);
