@@ -3,9 +3,6 @@
 #include "lib-header/stdmem.h"
 #include "lib-header/portio.h"
 
-// VGA_WIDTH 80
-// VGA_HEIGHT 25
-
 static uint16_t *framebuffer = (uint16_t *)0xB8000;
 static uint8_t cursor_row = 0;
 static uint8_t cursor_col = 0;
