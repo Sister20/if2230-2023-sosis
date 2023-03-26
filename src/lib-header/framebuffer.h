@@ -7,6 +7,9 @@
 #define CURSOR_PORT_CMD    0x03D4
 #define CURSOR_PORT_DATA   0x03D5
 
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
+
 /**
  * Terminal framebuffer
  * Resolution: 80x25

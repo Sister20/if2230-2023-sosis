@@ -310,14 +310,18 @@ void keyboard_isr(void)
       framebuffer_write(keyboard_cursor_row, keyboard_cursor_col, ' ', 0xF, 0);
       break;
     case '\b':
-      keyboard_state.buffer_index--;
+      if (keyboard_state.buffer_index > 0)
+      {
+        keyboard_state.buffer_index--;
+      }
+      
       framebuffer_write(keyboard_cursor_row, keyboard_cursor_col, ' ', 0xF, 0);
       if (keyboard_cursor_row != 0 || keyboard_cursor_col != 0)
       {
         if (keyboard_cursor_col == 0)
         {
           keyboard_cursor_row = keyboard_cursor_row - 1;
-          keyboard_cursor_col = 79;
+          keyboard_cursor_col = VGA_WIDTH - 1;
         }
         else
           keyboard_cursor_col = keyboard_cursor_col - 1;
@@ -333,10 +337,14 @@ void keyboard_isr(void)
       break;
 
     default:
-      keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = mapped_char;
-      keyboard_state.buffer_index++;
+      if (keyboard_state.buffer_index < KEYBOARD_BUFFER_SIZE - 1)
+      {
+        keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = mapped_char;
+        keyboard_state.buffer_index++;
+      }
+      
       framebuffer_write(keyboard_cursor_row, keyboard_cursor_col, mapped_char, 0xF, 0);
-      if (keyboard_cursor_col == 80)
+      if (keyboard_cursor_col == VGA_WIDTH - 1)
       {
         keyboard_cursor_row = keyboard_cursor_row + 1;
         keyboard_cursor_col = 0;
