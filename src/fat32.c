@@ -1,7 +1,4 @@
-#include "lib-header/stdtype.h"
 #include "lib-header/fat32.h"
-#include "lib-header/stdmem.h"
-
 
 static struct FAT32DriverState driver_state;
 
@@ -58,16 +55,31 @@ bool is_empty_storage() {
 
     // read boot sector from disk
     read_blocks(boot_sector, BOOT_SECTOR, CLUSTER_BLOCK_COUNT);
-
-    return memcmp(boot_sector, fs_signature, BLOCK_SIZE) == 0;
+    return memcmp(boot_sector, fs_signature, BLOCK_SIZE);
 }
 
 uint32_t cluster_to_lba(uint32_t cluster) {
-
+    return (cluster * CLUSTER_BLOCK_COUNT) + 1;
 }
 
 void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster) {
+    // Initialize all entries in the table to 0
+    memset(dir_table->table, 0, sizeof(dir_table->table));
 
+    // Set the first two entries to "." and ".." with the appropriate cluster numbers
+    dir_table->table[0].name[0] = '.';
+    dir_table->table[0].cluster_high = (uint16_t)(parent_dir_cluster >> 16);
+    dir_table->table[0].cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
+
+    dir_table->table[1].name[0] = '.';
+    dir_table->table[1].name[1] = '.';
+    dir_table->table[1].cluster_high = (uint16_t)(parent_dir_cluster >> 16);
+    dir_table->table[1].cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
+
+    // Set the name of the directory
+    for (int i = 0; i < 8 && name[i] != '\0'; i++) {
+        dir_table->table[2].name[i] = name[i];
+    }
 }
 
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
@@ -79,23 +91,11 @@ void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_co
     write_blocks(ptr, logical_block_address, block_count);
 }
 
-void read_blocks(void *ptr, uint32_t logical_block_address, uint8_t block_count) {
-    ATA_busy_wait();
-    out(0x1F6, 0xE0 | ((logical_block_address >> 24) & 0xF));
-    out(0x1F2, block_count);
-    out(0x1F3, (uint8_t) logical_block_address);
-    out(0x1F4, (uint8_t) (logical_block_address >> 8));
-    out(0x1F5, (uint8_t) (logical_block_address >> 16));
-    out(0x1F7, 0x20);
-
-    uint16_t *target = (uint16_t*) ptr;
-
-    for (uint32_t i = 0; i < block_count; i++) {
-        ATA_busy_wait();
-        ATA_DRQ_wait();
-        for (uint32_t j = 0; j < HALF_BLOCK_SIZE; j++)
-            target[j] = in16(0x1F0);
-        // Note : uint16_t => 2 bytes, HALF_BLOCK_SIZE*2 = BLOCK_SIZE with pointer arithmetic
-        target += HALF_BLOCK_SIZE;
-    }
+void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
+    // Calculate the logical block address from the cluster number
+    uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT;
+    // Calculate the number of blocks to read from the cluster count
+    uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT;
+    // Call the read_blocks function with the calculated values
+    read_blocks(ptr, logical_block_address, block_count);
 }
