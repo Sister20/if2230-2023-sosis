@@ -2,6 +2,7 @@
 
 static struct FAT32DriverState driver_state;
 
+
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -21,12 +22,14 @@ void create_fat32(void) {
     // Write the file system signature to the boot sector
     write_blocks(fs_signature, BOOT_SECTOR, 1);
 
+    struct FAT32DirectoryTable directory_table;
     // Create a buffer to hold the FAT data
     struct FAT32FileAllocationTable fat;
     fat.cluster_map[0] = CLUSTER_0_VALUE;
     fat.cluster_map[1] = CLUSTER_1_VALUE;
     fat.cluster_map[2] = FAT32_FAT_END_OF_FILE;
-    
+    init_directory_table(&directory_table, "root", ROOT_CLUSTER_NUMBER);
+    write_clusters(&directory_table, ROOT_CLUSTER_NUMBER, 1);
 
     // Write the FAT to the disk
     write_clusters(fat.cluster_map, FAT_CLUSTER_NUMBER, 1);
@@ -58,23 +61,12 @@ uint32_t cluster_to_lba(uint32_t cluster) {
 }
 
 void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uint32_t parent_dir_cluster) {
-    // Initialize all entries in the table to 0
-    memset(dir_table->table, 0, sizeof(dir_table->table));
-
-    // Set the first two entries to "." and ".." with the appropriate cluster numbers
-    dir_table->table[0].name[0] = '.';
-    dir_table->table[0].cluster_high = (uint16_t)(parent_dir_cluster >> 16);
-    dir_table->table[0].cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
-
-    dir_table->table[1].name[0] = '.';
-    dir_table->table[1].name[1] = '.';
-    dir_table->table[1].cluster_high = (uint16_t)(parent_dir_cluster >> 16);
-    dir_table->table[1].cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
-
-    // Set the name of the directory
-    for (int i = 0; i < 8 && name[i] != '\0'; i++) {
-        dir_table->table[2].name[i] = name[i];
-    }
+    struct FAT32DirectoryEntry directory_entry;
+    memcpy(&directory_entry.name, name, 8);
+    directory_entry.cluster_high = (uint16_t)(parent_dir_cluster >> 16);
+    directory_entry.cluster_low = (uint16_t)(parent_dir_cluster & 0xFFFF);
+    directory_entry.attribute = ATTR_SUBDIRECTORY;
+    dir_table->table[0] = directory_entry;
 }
 
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
