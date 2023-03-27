@@ -22,20 +22,15 @@ void create_fat32(void) {
     write_blocks(fs_signature, BOOT_SECTOR, 1);
 
     // Create a buffer to hold the FAT data
-    uint8_t fat[CLUSTER_SIZE] = {0};
-
-    // Set the values for cluster 0 and cluster 1
-    *(uint32_t*) &fat[0] = CLUSTER_0_VALUE;
-    *(uint32_t*) &fat[4] = CLUSTER_1_VALUE;
+    struct FAT32FileAllocationTable fat;
+    fat.cluster_map[0] = CLUSTER_0_VALUE;
+    fat.cluster_map[1] = CLUSTER_1_VALUE;
+    fat.cluster_map[2] = FAT32_FAT_END_OF_FILE;
+    
 
     // Write the FAT to the disk
-    write_clusters(fat, FAT_CLUSTER_NUMBER, 1);
+    write_clusters(fat.cluster_map, FAT_CLUSTER_NUMBER, 1);
 
-    // Create a buffer to hold the root directory data
-    uint8_t root_directory[CLUSTER_SIZE] = {0};
-
-    // Write the root directory to the disk
-    write_clusters(root_directory, ROOT_CLUSTER_NUMBER, 1);
 }
 
 void initialize_filesystem_fat32(void) {
@@ -54,7 +49,7 @@ bool is_empty_storage() {
     uint8_t boot_sector[BLOCK_SIZE];
 
     // read boot sector from disk
-    read_blocks(boot_sector, BOOT_SECTOR, CLUSTER_BLOCK_COUNT);
+    read_blocks(boot_sector, BOOT_SECTOR, 1);
     return memcmp(boot_sector, fs_signature, BLOCK_SIZE);
 }
 
@@ -84,18 +79,18 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
 
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
     // Calculate the logical block address from the cluster number
-    uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT;
+    uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT + 1;
     // Calculate the number of blocks to write from the cluster count
-    uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT;
+    uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT + 1;
     // Call the write_blocks function with the calculated values
     write_blocks(ptr, logical_block_address, block_count);
 }
 
 void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
     // Calculate the logical block address from the cluster number
-    uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT;
+    uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT + 1;
     // Calculate the number of blocks to read from the cluster count
-    uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT;
+    uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT + 1;
     // Call the read_blocks function with the calculated values
     read_blocks(ptr, logical_block_address, block_count);
 }
