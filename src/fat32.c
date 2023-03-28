@@ -121,7 +121,6 @@ int8_t read_directory(struct FAT32DriverRequest request) {
     }
 }
 
-
 /**
  * FAT32 read, read a file from file system.
  *
