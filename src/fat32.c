@@ -165,7 +165,7 @@ int8_t delete(struct FAT32DriverRequest request) {
         struct FAT32DirectoryEntry entry = dir_table.table[i];
         if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
             // Found the file/folder
-            if (entry.attribute & 0x10) {
+            if (entry.attribute == ATTR_SUBDIRECTORY) {
                 // It is a folder
                 struct FAT32DirectoryTable sub_dir_table;
                 struct FAT32DriverRequest sub_request = {
@@ -191,6 +191,8 @@ int8_t delete(struct FAT32DriverRequest request) {
                     // Folder is not empty
                     return 2;
                 }
+            }else{
+                
             }
             // Delete the directory entry
             memset(&dir_table.table[i], 0, sizeof(struct FAT32DirectoryEntry));
