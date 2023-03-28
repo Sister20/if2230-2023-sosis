@@ -138,6 +138,7 @@ int8_t read(struct FAT32DriverRequest request) {
 }
 
 int8_t write(struct FAT32DriverRequest request) {
+    // TODO: update driver cache
     struct FAT32DirectoryTable dir_table = {0};
     read_clusters(&dir_table, request.parent_cluster_number, 1);
 
