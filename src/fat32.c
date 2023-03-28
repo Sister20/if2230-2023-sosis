@@ -258,6 +258,8 @@ int8_t delete(struct FAT32DriverRequest request) {
                     // Folder is not empty
                     return 2;
                 }
+            }else{
+                
             }
             // Delete the directory entry
             memset(&dir_table.table[i], 0, sizeof(struct FAT32DirectoryEntry));
