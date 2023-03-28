@@ -122,8 +122,6 @@ int8_t read_directory(struct FAT32DriverRequest request) {
 }
 
 
-
-
 /**
  * FAT32 read, read a file from file system.
  *
@@ -135,8 +133,6 @@ int8_t read(struct FAT32DriverRequest request) {
     // Read the directory table from the parent cluster number
     read_clusters(&dir_table, request.parent_cluster_number, 1);
     for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
-
-
         struct FAT32DirectoryEntry entry = dir_table.table[i];
         if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
             // Found the file
@@ -158,22 +154,20 @@ int8_t read(struct FAT32DriverRequest request) {
     return 3; // Not found
 }
 
-/**
- * FAT32 delete, delete a file or empty directory (only 1 DirectoryEntry) in file system.
- *
- * @param request buf and buffer_size is unused
- * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
- */
-int8_t delete(struct FAT32DriverRequest request){
-struct FAT32DirectoryTable dir_table;
+// int8_t write(struct FAT32DriverRequest request) {
+
+// }
+
+int8_t delete(struct FAT32DriverRequest request) {
+    struct FAT32DirectoryTable dir_table;
     // Read the directory table from the parent cluster number
     read_clusters(&dir_table, request.parent_cluster_number, 1);
     for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
         struct FAT32DirectoryEntry entry = dir_table.table[i];
         if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
             // Found the file/folder
-            if (entry.attribute == ATTR_SUBDIRECTORY) {
-                //found folder
+            if (entry.attribute & 0x10) {
+                // It is a folder
                 struct FAT32DirectoryTable sub_dir_table;
                 struct FAT32DriverRequest sub_request = {
                     .buf = &sub_dir_table,
@@ -184,7 +178,7 @@ struct FAT32DirectoryTable dir_table;
                 };
                 int8_t result = read_directory(sub_request);
                 if (result != 0) {
-                    return -1; //folder not found
+                    return -1;
                 }
                 // Check if the folder is empty
                 bool is_empty = TRUE;
