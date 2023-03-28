@@ -86,3 +86,47 @@ void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
     // Call the read_blocks function with the calculated values
     read_blocks(ptr, logical_block_address, block_count);
 }
+
+/**
+ *  FAT32 Folder / Directory read
+ *
+ * @param request buf point to struct FAT32DirectoryTable,
+ *                name is directory name,
+ *                ext is unused,
+ *                parent_cluster_number is target directory table to read,
+ *                buffer_size must be exactly sizeof(struct FAT32DirectoryTable)
+ * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
+ */
+int8_t read_directory(struct FAT32DriverRequest request) {
+    if (request.buffer_size != sizeof(struct FAT32DirectoryTable)) {
+        return -1;
+    }
+
+    struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)request.buf;
+    bool foundName = FALSE;
+    for (int i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+        if (memcmp(directory_table->table[i].name, request.name, 8) == 0) {
+            foundName = TRUE;
+            if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
+                return 0;
+            }
+        } 
+    }
+    if (foundName) {
+        return 1;
+    } else {
+        return 2;
+    }
+}
+
+
+/**
+ * FAT32 read, read a file from file system.
+ *
+ * @param request All attribute will be used for read, buffer_size will limit reading count
+ * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
+ */
+int8_t read(struct FAT32DriverRequest request) {
+    
+}
+
