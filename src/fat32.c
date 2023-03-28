@@ -133,10 +133,12 @@ int8_t read(struct FAT32DriverRequest request) {
     // Read the directory table from the parent cluster number
     read_clusters(&dir_table, request.parent_cluster_number, 1);
     for (int i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+
+
         struct FAT32DirectoryEntry entry = dir_table.table[i];
-        if (strncmp(entry.name, request.name, 8) == 0 && strncmp(entry.ext, request.ext, 3) == 0) {
+        if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
             // Found the file
-            if (entry.attribute & 0x10) {
+            if (entry.attribute == ATTR_SUBDIRECTORY) {
                 // Not a file
                 return 1;
             }
