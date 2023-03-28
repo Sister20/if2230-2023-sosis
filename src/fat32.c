@@ -2,7 +2,6 @@
 
 static struct FAT32DriverState driver_state;
 
-
 const uint8_t fs_signature[BLOCK_SIZE] = {
     'C', 'o', 'u', 'r', 's', 'e', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',  ' ',
     'D', 'e', 's', 'i', 'g', 'n', 'e', 'd', ' ', 'b', 'y', ' ', ' ', ' ', ' ',  ' ',
@@ -98,7 +97,8 @@ void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
  * @return Error code: 0 success - 1 not a folder - 2 not found - -1 unknown
  */
 int8_t read_directory(struct FAT32DriverRequest request) {
-    if (request.buffer_size != sizeof(struct FAT32DirectoryTable)) {
+    uint32_t tableSize = sizeof(struct FAT32DirectoryTable);
+    if (request.buffer_size != tableSize) {
         return -1;
     }
 
@@ -153,9 +153,76 @@ int8_t read(struct FAT32DriverRequest request) {
     return 3; // Not found
 }
 
-// int8_t write(struct FAT32DriverRequest request) {
+/**
+ * FAT32 write, write a file or folder to file system.
+ *
+ * @param request All attribute will be used for write, buffer_size == 0 then create a folder / directory
+ * @return Error code: 0 success - 1 file/folder already exist - 2 invalid parent cluster - -1 unknown
+ */
+int8_t write(struct FAT32DriverRequest request) {
+    int8_t searchDir = read_directory(request);
+    if (searchDir == -1) {
+        return -1;
+    }
+    // if (searchDir == 0) {
+    //     return 2;
+    // }
 
-// }
+    // valid directory
+    struct FAT32DirectoryTable dir_table;
+    // Read the directory table from the parent cluster number
+    read_clusters(&dir_table, request.parent_cluster_number, 1);
+    bool foundName = FALSE;
+    // bool haveExt = request.ext[0] != '\0' ? TRUE : FALSE;
+    for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+        if (dir_table.table[i].name == request.name) {
+            foundName = TRUE;
+            if (foundName && memcmp(&request.ext, &dir_table.table[i].ext, 3) == 0) {
+                return 1;
+            } 
+        }
+    }
+    
+    // no duplicate file / folder
+    if (request.buffer_size == 0) {
+        // create sub-directory
+        struct FAT32DirectoryTable sub_directory_table;
+        init_directory_table(&sub_directory_table, request.name, 1);
+        write_clusters(&sub_directory_table, request.parent_cluster_number, 1);
+        return 0;
+    } else {
+        // save file data instead
+        uint32_t linked_index = request.parent_cluster_number;
+        uint8_t total_bytes = request.buffer_size;
+        struct FAT32FileAllocationTable fat_table;
+        read_clusters(&fat_table, FAT_CLUSTER_NUMBER, 1);
+        for (size_t i = 0; i < CLUSTER_MAP_SIZE; i++) {
+            if (fat_table.cluster_map[i] == 0 && total_bytes > 0) {
+                struct FAT32DirectoryEntry new_entry;
+                memcpy(&new_entry.name, request.name, 8);
+                new_entry.user_attribute = UATTR_NOT_EMPTY;
+                new_entry.cluster_high = linked_index >> 16;
+                new_entry.cluster_low = linked_index & 0xFFFF;
+                write_clusters(request.buf, i, 1);
+                total_bytes -= CLUSTER_SIZE;
+            }
+            if (total_bytes <= 0) {
+                break;
+            }
+            linked_index++;
+        }
+    
+        for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+            if (dir_table.table[i].name[0] == '\0') {
+                struct FAT32DirectoryEntry new_entry;
+                memcpy(&new_entry.name, request.name, 8);
+                new_entry.user_attribute = UATTR_NOT_EMPTY;
+                dir_table.table[i] = new_entry;
+            }
+        }
+        return 0;
+    }
+}
 
 int8_t delete(struct FAT32DriverRequest request) {
     struct FAT32DirectoryTable dir_table;
@@ -165,7 +232,7 @@ int8_t delete(struct FAT32DriverRequest request) {
         struct FAT32DirectoryEntry entry = dir_table.table[i];
         if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
             // Found the file/folder
-            if (entry.attribute & 0x10) {
+            if (entry.attribute == ATTR_SUBDIRECTORY) {
                 // It is a folder
                 struct FAT32DirectoryTable sub_dir_table;
                 struct FAT32DriverRequest sub_request = {

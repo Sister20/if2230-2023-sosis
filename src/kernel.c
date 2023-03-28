@@ -28,21 +28,20 @@ void kernel_setup(void)
     initialize_filesystem_fat32();
     keyboard_state_activate();
 
-    // struct ClusterBuffer cbuf[5];
-    // for (uint32_t i = 0; i < 5; i++)
-    //     for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
-    //         cbuf[i].buf[j] = i + 'a';
+    struct ClusterBuffer cbuf[5];
+    for (uint32_t i = 0; i < 5; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = i + 'a';
 
-    // struct FAT32DriverRequest request = {
-    //     .buf                   = cbuf,
-    //     .name                  = "ikanaide",
-    //     .ext                   = "uwu",
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-    //     .buffer_size           = 0,
-    // } ;
+    struct FAT32DriverRequest request = {
+        .buf                   = cbuf,
+        .name                  = "ikanaide",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 2048,
+    } ;
 
-    // write(request);  // Create folder "ikanaide"
-    // memcpy(request.name, "kano1\0\0\0", 8);
+    write(request);  // Create folder "ikanaide"
+    // memcpy(request.name, "kono1\0\0\0", 8);
     // write(request);  // Create folder "kano1"
     // memcpy(request.name, "ikanaide", 8);
     // delete(request); // Delete first folder, thus creating hole in FS
