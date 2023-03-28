@@ -108,8 +108,6 @@ int8_t read_directory(struct FAT32DriverRequest request) {
         if (memcmp(directory_table->table[i].name, request.name, 8) == 0) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
-                uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
-                read_clusters(directory_table, cluster_number, 1);
                 return 0;
             }
         } 
@@ -120,6 +118,8 @@ int8_t read_directory(struct FAT32DriverRequest request) {
         return 2;
     }
 }
+
+
 
 
 /**
@@ -156,3 +156,52 @@ int8_t read(struct FAT32DriverRequest request) {
     return 3; // Not found
 }
 
+/**
+ * FAT32 delete, delete a file or empty directory (only 1 DirectoryEntry) in file system.
+ *
+ * @param request buf and buffer_size is unused
+ * @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
+ */
+int8_t delete(struct FAT32DriverRequest request){
+struct FAT32DirectoryTable dir_table;
+    // Read the directory table from the parent cluster number
+    read_clusters(&dir_table, request.parent_cluster_number, 1);
+    for (int i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+        struct FAT32DirectoryEntry entry = dir_table.table[i];
+        if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
+            // Found the file/folder
+            if (entry.attribute == ATTR_SUBDIRECTORY) {
+                //found folder
+                struct FAT32DirectoryTable sub_dir_table;
+                struct FAT32DriverRequest sub_request = {
+                    .buf = &sub_dir_table,
+                    .name = {0},
+                    .ext = {0},
+                    .parent_cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low,
+                    .buffer_size = sizeof(sub_dir_table)
+                };
+                int8_t result = read_directory(sub_request);
+                if (result != 0) {
+                    return -1; //folder not found
+                }
+                // Check if the folder is empty
+                bool is_empty = TRUE;
+                for (int j = 0; j < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); j++) {
+                    if (sub_dir_table.table[j].name[0] != 0 && sub_dir_table.table[j].name[0] != 0xE5) {
+                        is_empty = FALSE;
+                        break;
+                    }
+                }
+                if (!is_empty) {
+                    // Folder is not empty
+                    return 2;
+                }
+            }
+            // Delete the directory entry
+            memset(&dir_table.table[i], 0, sizeof(struct FAT32DirectoryEntry));
+            write_clusters(&dir_table, request.parent_cluster_number, 1);
+            return 0; // Success
+        }
+    }
+    return 1; // Not found
+}
