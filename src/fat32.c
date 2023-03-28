@@ -108,6 +108,8 @@ int8_t read_directory(struct FAT32DriverRequest request) {
         if (memcmp(directory_table->table[i].name, request.name, 8) == 0) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
+                uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
+                read_clusters(directory_table, cluster_number, 1);
                 return 0;
             }
         } 
