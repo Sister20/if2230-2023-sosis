@@ -131,8 +131,20 @@ int8_t read(struct FAT32DriverRequest request) {
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
             // uint32_t cluster_count = (entry.filesize) / CLUSTER_SIZE + entry.filesize % CLUSTER_SIZE;
-            
-            read_clusters(request.buf, cluster_number, 1);
+            uint32_t bytes_left_to_read = entry.filesize;
+
+            while(cluster_number != FAT32_FAT_END_OF_FILE && bytes_left_to_read > 0){
+                uint32_t bytes_to_read;
+                if(bytes_left_to_read < CLUSTER_SIZE){
+                    bytes_to_read = bytes_left_to_read;
+                }else{
+                    bytes_to_read = CLUSTER_SIZE;
+                }
+                read_clusters(request.buf, cluster_number, 1);
+                request.buf += bytes_to_read;
+                bytes_left_to_read -= bytes_to_read;
+                cluster_number = driver_state.fat_table.cluster_map[cluster_number];
+            }
             return 0; // Success
         }
     }
