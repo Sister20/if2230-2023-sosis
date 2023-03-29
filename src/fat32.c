@@ -140,8 +140,6 @@ int8_t read(struct FAT32DriverRequest request) {
 }
 
 int8_t write(struct FAT32DriverRequest request) {
-    // TODO: update driver cache
-    // struct FAT32DirectoryTable dir_table = {0};
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
 
     if (driver_state.dir_table_buf.table[0].attribute != ATTR_SUBDIRECTORY) {
@@ -160,9 +158,8 @@ int8_t write(struct FAT32DriverRequest request) {
             }
         }
     }
-
     // no duplicate file / folder
-    // struct FAT32FileAllocationTable fat_table = {0};
+    
     read_clusters(&driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
     
     driver_state.dir_table_buf.table[request.parent_cluster_number].user_attribute = UATTR_NOT_EMPTY;
@@ -197,8 +194,7 @@ int8_t write(struct FAT32DriverRequest request) {
         struct FAT32DirectoryEntry new_entry = {0};
 
         for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
-            bool track = driver_state.dir_table_buf.table[i].name[0] == '\0';
-            if (track) {
+            if (driver_state.dir_table_buf.table[i].name[0] == '\0') {
                 memcpy(&new_entry.name, request.name, 8);
                 memcpy(&new_entry.ext, request.ext, 3);
                 new_entry.user_attribute = UATTR_NOT_EMPTY;
@@ -275,8 +271,9 @@ int8_t delete(struct FAT32DriverRequest request) {
             uint32_t dir_cluster_number = (uint32_t)entry.cluster_high << 16 | entry.cluster_low;
             read_clusters(&driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
 
+            // memset(&driver_state.dir_table_buf.table[dir_cluster_number], 0, sizeof(driver_state.dir_table_buf.table[dir_cluster_number]));
             // check linked clusters
-            while (dir_cluster_number != FAT32_FAT_END_OF_FILE){
+            while (driver_state.fat_table.cluster_map[dir_cluster_number] != FAT32_FAT_END_OF_FILE){
                 uint32_t temp = dir_cluster_number;
                 driver_state.fat_table.cluster_map[temp] = 0;
 
@@ -284,7 +281,7 @@ int8_t delete(struct FAT32DriverRequest request) {
                 driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
             }
             driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
-
+            
             write_clusters(&driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
             write_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
             return 0; // Success
