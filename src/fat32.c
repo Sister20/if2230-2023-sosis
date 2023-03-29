@@ -113,7 +113,6 @@ int8_t read_directory(struct FAT32DriverRequest request) {
  * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
  */
 int8_t read(struct FAT32DriverRequest request) {
-    // struct FAT32DirectoryTable dir_table;
     // Read the directory table from the parent cluster number
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
     for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
@@ -130,7 +129,6 @@ int8_t read(struct FAT32DriverRequest request) {
             }
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
-            // uint32_t cluster_count = (entry.filesize) / CLUSTER_SIZE + entry.filesize % CLUSTER_SIZE;
             int32_t bytes_left_to_read = entry.filesize;
 
             while(driver_state.fat_table.cluster_map[cluster_number] != FAT32_FAT_END_OF_FILE && bytes_left_to_read >= 0){
