@@ -4,6 +4,8 @@
 #include "disk.h"
 #include "stdtype.h"
 #include "stdmem.h"
+#include "portio.h"
+#include "rtc.h"
 
 
 /**
