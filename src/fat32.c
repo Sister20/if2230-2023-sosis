@@ -240,7 +240,6 @@ int8_t write(struct FAT32DriverRequest request) {
             bool track = driver_state.dir_table_buf.table[i].name[0] == '\0';
             if (track) {
                 memcpy(&new_entry.name, request.name, 8);
-                memcpy(&new_entry.ext, request.ext, 3);
                 new_entry.attribute = ATTR_SUBDIRECTORY;
                 new_entry.cluster_high = index >> 16;
                 new_entry.cluster_low = index & 0xFFFF;
@@ -275,7 +274,7 @@ int8_t delete(struct FAT32DriverRequest request) {
 
     for (size_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
         struct FAT32DirectoryEntry entry = driver_state.dir_table_buf.table[i];
-        if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0 && entry.undelete) {
+        if (memcmp(entry.name, request.name, 8) == 0 && (memcmp(entry.ext, request.ext, 3) == 0 || (entry.ext[0] == '\0' && request.ext[0] == '\0')) && entry.undelete) {
             // Found the file/folder
             if (entry.attribute == ATTR_SUBDIRECTORY) {
                 // folder
@@ -290,7 +289,6 @@ int8_t delete(struct FAT32DriverRequest request) {
 
             
             // check linked clusters
-            // size_t cluster_index = 0;
             bool clean_delete = FALSE;
             while (!clean_delete){
                 uint32_t temp = dir_cluster_number;
