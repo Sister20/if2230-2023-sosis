@@ -24,6 +24,7 @@ Milestone ini akan berfokus kepada interrupt, simple hardware device driver untu
 * Keyboard Driver
 * Disk Driver
 * File System
+* CMOS Filesystem
 
 
 
