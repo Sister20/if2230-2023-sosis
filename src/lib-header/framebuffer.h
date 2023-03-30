@@ -7,6 +7,9 @@
 #define CURSOR_PORT_CMD    0x03D4
 #define CURSOR_PORT_DATA   0x03D5
 
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
+
 /**
  * Terminal framebuffer
  * Resolution: 80x25
@@ -41,5 +44,7 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  * 
  */
 void framebuffer_clear(void);
+
+uint16_t framebuffer_get_cursor(void);
 
 #endif
