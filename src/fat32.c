@@ -263,7 +263,10 @@ int8_t write(struct FAT32DriverRequest request) {
 //  @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
 int8_t delete(struct FAT32DriverRequest request) {
     // Read the directory table from the parent cluster number
-    // int count = 0;
+    struct ClusterBuffer buf = {0};
+    for (size_t i = 0; i < CLUSTER_SIZE; i++) {
+        buf.buf[i] = 0;
+    }
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
 
     if(driver_state.dir_table_buf.table[0].attribute != ATTR_SUBDIRECTORY){
@@ -287,12 +290,17 @@ int8_t delete(struct FAT32DriverRequest request) {
 
             
             // check linked clusters
-            while (driver_state.fat_table.cluster_map[dir_cluster_number] != FAT32_FAT_END_OF_FILE){
+            // size_t cluster_index = 0;
+            bool clean_delete = FALSE;
+            while (!clean_delete){
                 uint32_t temp = dir_cluster_number;
                 driver_state.fat_table.cluster_map[temp] = 0;
-
+                write_clusters(&buf, dir_cluster_number, 1);
                 dir_cluster_number = driver_state.fat_table.cluster_map[dir_cluster_number];
                 driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
+                if (driver_state.fat_table.cluster_map[dir_cluster_number] != FAT32_FAT_END_OF_FILE) {
+                    clean_delete = TRUE;
+                }
             }
             driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
             memset(&driver_state.dir_table_buf.table[i], 0, sizeof(struct FAT32DirectoryEntry));
