@@ -41,7 +41,6 @@ void initialize_filesystem_fat32(void) {
 }
 
 bool is_empty_storage() {
-    // allocate buffer to store boot sector
     uint8_t boot_sector[BLOCK_SIZE];
 
     // read boot sector from disk
@@ -63,20 +62,16 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
 }
 
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
-    // Calculate the logical block address from the cluster number
     uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT;
-    // Calculate the number of blocks to write from the cluster count
     uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT;
-    // Call the write_blocks function with the calculated values
+
     write_blocks(ptr, logical_block_address, block_count);
 }
 
 void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
-    // Calculate the logical block address from the cluster number
     uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT;
-    // Calculate the number of blocks to read from the cluster count
     uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT;
-    // Call the read_blocks function with the calculated values
+
     read_blocks(ptr, logical_block_address, block_count);
 }
 
@@ -105,12 +100,6 @@ int8_t read_directory(struct FAT32DriverRequest request) {
     }
 }
 
-/**
- * FAT32 read, read a file from file system.
- *
- * @param request All attribute will be used for read, buffer_size will limit reading count
- * @return Error code: 0 success - 1 not a file - 2 not enough buffer - 3 not found - -1 unknown
- */
 int8_t read(struct FAT32DriverRequest request) {
     // Read the directory table from the parent cluster number
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
@@ -258,7 +247,6 @@ int8_t write(struct FAT32DriverRequest request) {
     }
 }
 
-//  @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
 int8_t delete(struct FAT32DriverRequest request) {
     // buffer to replace
     struct ClusterBuffer buf = {0};
