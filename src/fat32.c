@@ -94,6 +94,11 @@ int8_t read_directory(struct FAT32DriverRequest request) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
                 uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
+                // uint16_t access_date = 0;
+                // access_date |= (year - 1980) << 9;
+                // access_date |= month << 5;
+                // access_date |= day;
+                // directory_table->table[i].access_date = access_date;
                 read_clusters(directory_table, cluster_number, 1);
                 return 0;
             }
@@ -130,6 +135,12 @@ int8_t read(struct FAT32DriverRequest request) {
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
             int32_t bytes_left_to_read = entry.filesize;
+
+            // uint16_t access_date = 0;
+            // access_date |= (year - 1980) << 9;
+            // access_date |= month << 5;
+            // access_date |= day;
+            
 
             while(driver_state.fat_table.cluster_map[cluster_number] != FAT32_FAT_END_OF_FILE && bytes_left_to_read >= 0){
                 uint32_t bytes_to_read;
@@ -261,11 +272,12 @@ int8_t write(struct FAT32DriverRequest request) {
 
 //  @return Error code: 0 success - 1 not found - 2 folder is not empty - -1 unknown
 int8_t delete(struct FAT32DriverRequest request) {
-    // Read the directory table from the parent cluster number
+    // buffer to replace
     struct ClusterBuffer buf = {0};
     for (size_t i = 0; i < CLUSTER_SIZE; i++) {
         buf.buf[i] = 0;
     }
+    // Read the directory table from the parent cluster number
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
 
     if(driver_state.dir_table_buf.table[0].attribute != ATTR_SUBDIRECTORY){
@@ -290,13 +302,15 @@ int8_t delete(struct FAT32DriverRequest request) {
             
             // check linked clusters
             bool clean_delete = FALSE;
+            // check linked clusters
             while (!clean_delete){
-                uint32_t temp = dir_cluster_number;
-                write_clusters(&buf, dir_cluster_number, 1);
-                dir_cluster_number = driver_state.fat_table.cluster_map[dir_cluster_number];
-                driver_state.fat_table.cluster_map[temp] = 0;
-                if (driver_state.fat_table.cluster_map[dir_cluster_number] != FAT32_FAT_END_OF_FILE) {
+                if (driver_state.fat_table.cluster_map[dir_cluster_number] == FAT32_FAT_END_OF_FILE) {
                     clean_delete = TRUE;
+                } else {
+                    uint32_t temp = dir_cluster_number;
+                    write_clusters(&buf, temp, 1);
+                    dir_cluster_number = driver_state.fat_table.cluster_map[dir_cluster_number];
+                    driver_state.fat_table.cluster_map[temp] = 0;
                 }
             }
             driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
