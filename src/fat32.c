@@ -297,7 +297,7 @@ int8_t delete(struct FAT32DriverRequest request) {
                 driver_state.fat_table.cluster_map[temp] = 0;
                 write_clusters(&buf, dir_cluster_number, 1);
                 dir_cluster_number = driver_state.fat_table.cluster_map[dir_cluster_number];
-                driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
+                driver_state.fat_table.cluster_map[temp] = 0;
                 if (driver_state.fat_table.cluster_map[dir_cluster_number] != FAT32_FAT_END_OF_FILE) {
                     clean_delete = TRUE;
                 }
