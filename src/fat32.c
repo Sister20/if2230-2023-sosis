@@ -245,6 +245,7 @@ int8_t write(struct FAT32DriverRequest request) {
                 new_entry.cluster_high = index >> 16;
                 new_entry.cluster_low = index & 0xFFFF;
                 new_entry.undelete = TRUE;
+                new_entry.filesize = 0;
                 driver_state.dir_table_buf.table[i] = new_entry;
                 break;
             }
