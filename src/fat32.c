@@ -81,7 +81,6 @@ void read_clusters(void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
 }
 
 int8_t read_directory(struct FAT32DriverRequest request) {
-    // TODO: check this function
     uint32_t tableSize = sizeof(struct FAT32DirectoryTable);
     if (request.buffer_size != tableSize) {
         return -1;
@@ -94,11 +93,6 @@ int8_t read_directory(struct FAT32DriverRequest request) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
                 uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
-                // uint16_t access_date = 0;
-                // access_date |= (year - 1980) << 9;
-                // access_date |= month << 5;
-                // access_date |= day;
-                // directory_table->table[i].access_date = access_date;
                 read_clusters(directory_table, cluster_number, 1);
                 return 0;
             }
@@ -135,12 +129,6 @@ int8_t read(struct FAT32DriverRequest request) {
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
             int32_t bytes_left_to_read = entry.filesize;
-
-            // uint16_t access_date = 0;
-            // access_date |= (year - 1980) << 9;
-            // access_date |= month << 5;
-            // access_date |= day;
-            
 
             while(driver_state.fat_table.cluster_map[cluster_number] != FAT32_FAT_END_OF_FILE && bytes_left_to_read >= 0){
                 uint32_t bytes_to_read;
