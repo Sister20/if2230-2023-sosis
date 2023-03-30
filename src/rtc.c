@@ -1,102 +1,49 @@
 #include "lib-header/rtc.h"
-#define CURRENT_YEAR        2023                            // Change this each year!
- 
-int century_register = 0x00;                                // Set by ACPI table parsing code if possible
- 
-// void out_byte(int port, int value);
-// int in_byte(int port);
- 
-// enum {
-//       cmos_address = 0x70,
-//       cmos_data    = 0x71
-// };
- 
-int get_update_in_progress_flag() {
-      out16(CMOS_ADDRESS_PORT, 0x0A);
-      return (in16(CMOS_DATA_PORT) & 0x80);
+
+void get_date_time(int* year, int* month, int* day, int* hour, int* minute, int* second) {
+    uint8_t century, year_byte, month_byte, day_byte, hour_byte, minute_byte, second_byte;
+
+    out(CMOS_ADDRESS, RTC_SECONDS);
+    second_byte = in(CMOS_DATA);
+    out(CMOS_ADDRESS, RTC_MINUTES);
+    minute_byte = in(CMOS_DATA);
+    out(CMOS_ADDRESS, RTC_HOURS);
+    hour_byte = in(CMOS_DATA);
+    out(CMOS_ADDRESS, RTC_DAY_OF_MONTH);
+    day_byte = in(CMOS_DATA);
+    out(CMOS_ADDRESS, RTC_MONTH);
+    month_byte = in(CMOS_DATA);
+    out(CMOS_ADDRESS, RTC_YEAR);
+    year_byte = in(CMOS_DATA);
+    out(CMOS_ADDRESS, 0x32); // century byte
+    century = in(CMOS_DATA);
+
+    BCD_TO_BIN(second_byte);
+    BCD_TO_BIN(minute_byte);
+    BCD_TO_BIN(hour_byte);
+    BCD_TO_BIN(day_byte);
+    BCD_TO_BIN(month_byte);
+    BCD_TO_BIN(year_byte);
+    BCD_TO_BIN(century);
+
+    *year = century * 100 + year_byte;
+    *month = month_byte;
+    *day = day_byte;
+    *hour = hour_byte;
+    *minute = minute_byte;
+    *second = second_byte;
 }
- 
-unsigned char get_RTC_register(int reg) {
-      out16(CMOS_ADDRESS_PORT, reg);
-      return in16(CMOS_DATA_PORT);
+
+void get_time(uint16_t* time) {
+    int hour, minute, second;
+    int dummy = 0;  // dummy variable to pass to get_date_time
+    get_date_time(&dummy, &dummy, &dummy, &hour, &minute, &second);
+    *time = ((uint16_t) hour) * 256 + (uint16_t) minute;
 }
- 
-void read_rtc() {
-      unsigned char century;
-      unsigned char last_second;
-      unsigned char last_minute;
-      unsigned char last_hour;
-      unsigned char last_day;
-      unsigned char last_month;
-      unsigned char last_year;
-      unsigned char last_century;
-      unsigned char registerB;
- 
-      // Note: This uses the "read registers until you get the same values twice in a row" technique
-      //       to avoid getting dodgy/inconsistent values due to RTC updates
- 
-      while (get_update_in_progress_flag());                // Make sure an update isn't in progress
-      second = get_RTC_register(0x00);
-      minute = get_RTC_register(0x02);
-      hour = get_RTC_register(0x04);
-      day = get_RTC_register(0x07);
-      month = get_RTC_register(0x08);
-      year = get_RTC_register(0x09);
-      if(century_register != 0) {
-            century = get_RTC_register(century_register);
-      }
- 
-      do {
-            last_second = second;
-            last_minute = minute;
-            last_hour = hour;
-            last_day = day;
-            last_month = month;
-            last_year = year;
-            last_century = century;
- 
-            while (get_update_in_progress_flag());           // Make sure an update isn't in progress
-            second = get_RTC_register(0x00);
-            minute = get_RTC_register(0x02);
-            hour = get_RTC_register(0x04);
-            day = get_RTC_register(0x07);
-            month = get_RTC_register(0x08);
-            year = get_RTC_register(0x09);
-            if(century_register != 0) {
-                  century = get_RTC_register(century_register);
-            }
-      } while( (last_second != second) || (last_minute != minute) || (last_hour != hour) ||
-               (last_day != day) || (last_month != month) || (last_year != year) ||
-               (last_century != century) );
- 
-      registerB = get_RTC_register(0x0B);
- 
-      // Convert BCD to binary values if necessary
- 
-      if (!(registerB & 0x04)) {
-            second = (second & 0x0F) + ((second / 16) * 10);
-            minute = (minute & 0x0F) + ((minute / 16) * 10);
-            hour = ( (hour & 0x0F) + (((hour & 0x70) / 16) * 10) ) | (hour & 0x80);
-            day = (day & 0x0F) + ((day / 16) * 10);
-            month = (month & 0x0F) + ((month / 16) * 10);
-            year = (year & 0x0F) + ((year / 16) * 10);
-            if(century_register != 0) {
-                  century = (century & 0x0F) + ((century / 16) * 10);
-            }
-      }
- 
-      // Convert 12 hour clock to 24 hour clock if necessary
- 
-      if (!(registerB & 0x02) && (hour & 0x80)) {
-            hour = ((hour & 0x7F) + 12) % 24;
-      }
- 
-      // Calculate the full (4-digit) year
- 
-      if(century_register != 0) {
-            year += century * 100;
-      } else {
-            year += (CURRENT_YEAR / 100) * 100;
-            if(year < CURRENT_YEAR) year += 100;
-      }
+
+void get_date(uint16_t* date) {
+    int year, month, day;
+    int dummy = 0;  // dummy variable to pass to get_date_time
+    get_date_time(&year, &month, &day, &dummy, &dummy, &dummy);
+    *date = ((uint16_t) (year % 100)) * 512 + ((uint16_t) month) * 32 + (uint16_t) day;
 }
