@@ -64,7 +64,7 @@ void init_directory_table(struct FAT32DirectoryTable *dir_table, char *name, uin
 void write_clusters(const void *ptr, uint32_t cluster_number, uint8_t cluster_count) {
     uint32_t logical_block_address = cluster_number * CLUSTER_BLOCK_COUNT;
     uint8_t block_count = cluster_count * CLUSTER_BLOCK_COUNT;
-
+    
     write_blocks(ptr, logical_block_address, block_count);
 }
 
@@ -88,6 +88,10 @@ int8_t read_directory(struct FAT32DriverRequest request) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
                 uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
+                uint16_t date;
+                get_date(&date);
+                directory_table->table[i].access_date = date;
+                write_clusters(directory_table, cluster_number, 1);
                 read_clusters(directory_table, cluster_number, 1);
                 return 0;
             }
@@ -118,7 +122,10 @@ int8_t read(struct FAT32DriverRequest request) {
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
             int32_t bytes_left_to_read = entry.filesize;
-
+            uint16_t date;
+            get_date(&date);
+            driver_state.dir_table_buf.table[i].access_date = date;
+            write_clusters(&driver_state.dir_table_buf, cluster_number, 1);
             while(driver_state.fat_table.cluster_map[cluster_number] != FAT32_FAT_END_OF_FILE && bytes_left_to_read >= 0){
                 uint32_t bytes_to_read;
                 if(bytes_left_to_read < CLUSTER_SIZE){
@@ -203,6 +210,11 @@ int8_t write(struct FAT32DriverRequest request) {
                 new_entry.cluster_low = fatIndex & 0xFFFF;
                 new_entry.undelete = TRUE;
                 new_entry.filesize = file_size;
+                uint16_t date, time;
+                get_date(&date);
+                new_entry.create_date = date;
+                get_time(&time);
+                new_entry.create_time = time;
                 driver_state.dir_table_buf.table[i] = new_entry;
                 break;
             }
@@ -233,6 +245,11 @@ int8_t write(struct FAT32DriverRequest request) {
                 new_entry.cluster_low = index & 0xFFFF;
                 new_entry.undelete = TRUE;
                 new_entry.filesize = 0;
+                uint16_t date, time;
+                get_date(&date);
+                new_entry.create_date = date;
+                get_time(&time);
+                new_entry.create_time = time;
                 driver_state.dir_table_buf.table[i] = new_entry;
                 break;
             }
@@ -291,6 +308,11 @@ int8_t delete(struct FAT32DriverRequest request) {
             }
             driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
             memset(&driver_state.dir_table_buf.table[i], 0, sizeof(struct FAT32DirectoryEntry));
+            uint16_t date, time;
+            get_date(&date);
+            get_time(&time);
+            driver_state.dir_table_buf.table[request.parent_cluster_number].modified_time = time;
+            driver_state.dir_table_buf.table[request.parent_cluster_number].modified_date = date;
             write_clusters(&driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
             write_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
             return 0; // Success
