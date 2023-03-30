@@ -288,10 +288,8 @@ int8_t delete(struct FAT32DriverRequest request) {
             // check linked clusters
             while (driver_state.fat_table.cluster_map[dir_cluster_number] != FAT32_FAT_END_OF_FILE){
                 uint32_t temp = dir_cluster_number;
-                driver_state.fat_table.cluster_map[temp] = 0;
-
                 dir_cluster_number = driver_state.fat_table.cluster_map[dir_cluster_number];
-                driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
+                driver_state.fat_table.cluster_map[temp] = 0;
             }
             driver_state.fat_table.cluster_map[dir_cluster_number] = 0;
             memset(&driver_state.dir_table_buf.table[i], 0, sizeof(struct FAT32DirectoryEntry));
