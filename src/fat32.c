@@ -212,8 +212,10 @@ int8_t write(struct FAT32DriverRequest request) {
                 new_entry.filesize = file_size;
                 uint16_t date, time;
                 get_date(&date);
+
                 new_entry.create_date = date;
                 get_time(&time);
+
                 new_entry.create_time = time;
                 driver_state.dir_table_buf.table[i] = new_entry;
                 break;
@@ -247,8 +249,10 @@ int8_t write(struct FAT32DriverRequest request) {
                 new_entry.filesize = 0;
                 uint16_t date, time;
                 get_date(&date);
+
                 new_entry.create_date = date;
                 get_time(&time);
+
                 new_entry.create_time = time;
                 driver_state.dir_table_buf.table[i] = new_entry;
                 break;
@@ -311,8 +315,9 @@ int8_t delete(struct FAT32DriverRequest request) {
             uint16_t date, time;
             get_date(&date);
             get_time(&time);
-            driver_state.dir_table_buf.table[request.parent_cluster_number].modified_time = time;
-            driver_state.dir_table_buf.table[request.parent_cluster_number].modified_date = date;
+
+            driver_state.dir_table_buf.table[0].modified_time = time;
+            driver_state.dir_table_buf.table[0].modified_date = date;
             write_clusters(&driver_state.fat_table, FAT_CLUSTER_NUMBER, 1);
             write_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
             return 0; // Success
