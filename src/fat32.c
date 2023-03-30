@@ -41,7 +41,6 @@ void initialize_filesystem_fat32(void) {
 }
 
 bool is_empty_storage() {
-    // allocate buffer to store boot sector
     uint8_t boot_sector[BLOCK_SIZE];
 
     // read boot sector from disk
