@@ -65,7 +65,7 @@ struct PageDirectoryEntry {
 struct PageDirectory {
     struct PageDirectoryEntry table[PAGE_ENTRY_COUNT];
 
-} __attribute__((packed));
+} __attribute__((aligned(0x1000)));
 
 /**
  * Containing page driver states
