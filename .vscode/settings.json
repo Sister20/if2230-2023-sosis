@@ -11,6 +11,7 @@
         "interrupt.h": "c",
         "framebuffer.h": "c",
         "idt.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "paging.h": "c"
     },
 }
