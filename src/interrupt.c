@@ -56,7 +56,10 @@ void main_interrupt_handler(
 {
     switch (int_number)
     {
-    case 33:
+    case PAGE_FAULT:
+        __asm__("hlt");
+        break;
+    case PIC1_OFFSET + IRQ_KEYBOARD:
         keyboard_isr();
         break;
     default:
