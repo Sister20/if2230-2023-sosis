@@ -31,7 +31,7 @@ struct SegmentDescriptor {
     uint16_t base_low;
 
     // Next 16-bit (Bit 32 to 47)
-    uint8_t             base_mid;
+    uint8_t base_mid   : 8;
     uint8_t type_bit   : 4;
     uint8_t non_system : 1;
     uint8_t dpl        : 2;
