@@ -33,8 +33,15 @@ int8_t allocate_single_user_page_frame(void *virtual_addr) {
     // Using default QEMU config (128 MiB max memory)
     uint32_t last_physical_addr = (uint32_t) page_driver_state.last_available_physical_addr;
 
-    // TODO : Allocate Page Directory Entry with user privilege
-    return -1;
+    // Allocate Page Directory Entry with user privilege
+    struct PageDirectoryEntryFlag flag;
+    flag.present_bit = 1;
+    flag.write_bit = 1;
+    flag.user_supervisor = 1;
+    flag.use_pagesize_4_mb = 1;
+    update_page_directory_entry((void *)last_physical_addr, virtual_addr, flag);
+
+    return 0;
 }
 
 void flush_single_tlb(void *virtual_addr) {
