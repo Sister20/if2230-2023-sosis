@@ -1,5 +1,5 @@
-#include "lib-header/stdtype.h"
-#include "lib-header/portio.h"
+#include "stdtype.h"
+#include "portio.h"
 
 
 #define CMOS_ADDRESS 0x70
