@@ -27,7 +27,7 @@ void kernel_setup(void) {
     // Write shell into memory
     struct FAT32DriverRequest request = {
         .buf                   = (uint8_t*) 0,
-        .name                  = "shell",
+        .name                  = "shell\0\0\0",
         .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,

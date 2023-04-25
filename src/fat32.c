@@ -83,7 +83,7 @@ int8_t read_directory(struct FAT32DriverRequest request) {
 
     struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)request.buf;
     bool foundName = FALSE;
-    for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+    for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
         if (memcmp(directory_table->table[i].name, request.name, 8) == 0) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
@@ -107,7 +107,7 @@ int8_t read_directory(struct FAT32DriverRequest request) {
 int8_t read(struct FAT32DriverRequest request) {
     // Read the directory table from the parent cluster number
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
-    for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+    for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
         struct FAT32DirectoryEntry entry = driver_state.dir_table_buf.table[i];
         if (memcmp(entry.name, request.name, 8) == 0 && memcmp(entry.ext, request.ext, 3) == 0) {
             // Found the file
@@ -122,11 +122,11 @@ int8_t read(struct FAT32DriverRequest request) {
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
             int32_t bytes_left_to_read = entry.filesize;
-            uint16_t date;
-            get_date(&date);
-            driver_state.dir_table_buf.table[i].access_date = date;
-            write_clusters(&driver_state.dir_table_buf, cluster_number, 1);
-            while(driver_state.fat_table.cluster_map[cluster_number] != FAT32_FAT_END_OF_FILE && bytes_left_to_read >= 0){
+            // uint16_t date;
+            // get_date(&date);
+            // driver_state.dir_table_buf.table[i].access_date = date;
+            // write_clusters(&driver_state.dir_table_buf, cluster_number, 1);
+            while(bytes_left_to_read > 0){
                 uint32_t bytes_to_read;
                 if(bytes_left_to_read < CLUSTER_SIZE){
                     bytes_to_read = bytes_left_to_read;
@@ -137,6 +137,7 @@ int8_t read(struct FAT32DriverRequest request) {
                 bytes_left_to_read -= bytes_to_read;
                 cluster_number = driver_state.fat_table.cluster_map[cluster_number];
             }
+
             return 0; // Success
         }
     }
@@ -151,7 +152,7 @@ int8_t write(struct FAT32DriverRequest request) {
     }
 
     bool foundName = FALSE;
-    for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+    for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
         if (memcmp(&driver_state.dir_table_buf.table[i].name, &request.name, 8) == 0) {
             foundName = TRUE;
             if (foundName && memcmp(&request.ext, &driver_state.dir_table_buf.table[i].ext, 3) == 0) {
@@ -170,12 +171,12 @@ int8_t write(struct FAT32DriverRequest request) {
 
     if (request.buffer_size != 0) {
         // save file data instead
-        size_t prev_cluster_number = 0;
-        size_t counter = 1;
+        tssize_t prev_cluster_number = 0;
+        tssize_t counter = 1;
         int32_t total_bytes = request.buffer_size;
         uint32_t fatIndex = 0;
         uint32_t file_size = 0;
-        for (size_t i = 3; i < CLUSTER_MAP_SIZE; i++) {
+        for (tssize_t i = 3; i < CLUSTER_MAP_SIZE; i++) {
             if (driver_state.fat_table.cluster_map[i] == 0 && total_bytes >= 0) {
                 if (counter >= 2) {
                     driver_state.fat_table.cluster_map[prev_cluster_number] = i;
@@ -201,7 +202,7 @@ int8_t write(struct FAT32DriverRequest request) {
 
         struct FAT32DirectoryEntry new_entry = {0};
 
-        for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+        for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
             if (driver_state.dir_table_buf.table[i].name[0] == '\0') {
                 memcpy(&new_entry.name, request.name, 8);
                 memcpy(&new_entry.ext, request.ext, 3);
@@ -229,7 +230,7 @@ int8_t write(struct FAT32DriverRequest request) {
     } else {
         // create sub-directory
         uint32_t index = 0;
-        for (size_t i = 0; i < CLUSTER_MAP_SIZE; i++) {
+        for (tssize_t i = 0; i < CLUSTER_MAP_SIZE; i++) {
             if (driver_state.fat_table.cluster_map[i] == 0) {
                 index = i;
                 break;
@@ -237,7 +238,7 @@ int8_t write(struct FAT32DriverRequest request) {
         }
         driver_state.fat_table.cluster_map[index] = FAT32_FAT_END_OF_FILE;
 
-        for (size_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+        for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
             struct FAT32DirectoryEntry new_entry = {0};
             bool track = driver_state.dir_table_buf.table[i].name[0] == '\0';
             if (track) {
@@ -271,7 +272,7 @@ int8_t write(struct FAT32DriverRequest request) {
 int8_t delete(struct FAT32DriverRequest request) {
     // buffer to replace
     struct ClusterBuffer buf = {0};
-    for (size_t i = 0; i < CLUSTER_SIZE; i++) {
+    for (tssize_t i = 0; i < CLUSTER_SIZE; i++) {
         buf.buf[i] = 0;
     }
     // Read the directory table from the parent cluster number
@@ -281,7 +282,7 @@ int8_t delete(struct FAT32DriverRequest request) {
         return -1;
     }
 
-    for (size_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
+    for (tssize_t i = 1; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
         struct FAT32DirectoryEntry entry = driver_state.dir_table_buf.table[i];
         if (memcmp(entry.name, request.name, 8) == 0 && (memcmp(entry.ext, request.ext, 3) == 0 || (entry.ext[0] == '\0' && request.ext[0] == '\0')) && entry.undelete) {
             // Found the file/folder
