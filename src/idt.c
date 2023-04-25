@@ -13,7 +13,10 @@ void initialize_idt(void)
 {
     for (int i = 0; i < ISR_STUB_TABLE_LIMIT; i++)
     {
+        if (i < 0x30)
         set_interrupt_gate(i, isr_stub_table[i], GDT_KERNEL_CODE_SEGMENT_SELECTOR, 0);
+        else
+        set_interrupt_gate(i, isr_stub_table[i], GDT_KERNEL_CODE_SEGMENT_SELECTOR, 0x3);
     }
     __asm__ volatile("lidt %0"
                      :
