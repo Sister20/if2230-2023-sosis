@@ -3,7 +3,9 @@
 #include "lib-header/portio.h"
 #include "lib-header/keyboard.h"
 
-struct TSSEntry _interrupt_tss_entry = {0};
+struct TSSEntry _interrupt_tss_entry = {
+    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+};
 
 void io_wait(void)
 {
@@ -62,6 +64,9 @@ void main_interrupt_handler(
     case PIC1_OFFSET + IRQ_KEYBOARD:
         keyboard_isr();
         break;
+    case 0x30:
+        syscall(cpu, info);
+        break;
     default:
         break;
     }
@@ -81,3 +86,18 @@ void set_tss_kernel_current_stack(void) {
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
 
+void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
+    if (cpu.eax == 0) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int8_t*) cpu.ecx) = read(request);
+    } else if (cpu.eax == 4) {
+        keyboard_state_activate();
+        __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
+        while (is_keyboard_blocking());
+        char buf[KEYBOARD_BUFFER_SIZE];
+        get_keyboard_buffer(buf);
+        memcpy((char *) cpu.ebx, buf, cpu.ecx);
+    } else if (cpu.eax == 5) {
+        puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
+    }
+}

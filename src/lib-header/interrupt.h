@@ -2,6 +2,8 @@
 #define _INTERRUPT_H
 
 #include "stdtype.h"
+#include "idt.h"
+#include "fat32.h"
 
 /* -- PIC constants -- */
 
