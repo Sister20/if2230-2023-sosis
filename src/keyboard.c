@@ -308,21 +308,23 @@ void keyboard_isr(void)
       framebuffer_write(cursor_row, cursor_col, ' ', 0xF, 0);
       break;
     case '\b':
-      if (keyboard_state.buffer_index > 0)
-      {
-        keyboard_state.buffer_index--;
-      }
-      
-      framebuffer_write(cursor_row, cursor_col, ' ', 0xF, 0);
-      if (cursor_row != 0 || cursor_col != 0)
-      {
-        if (cursor_col == 0)
+      if (cursor_col > cursor_col_threshold) {
+        if (keyboard_state.buffer_index > 0)
         {
-          cursor_row = cursor_row - 1;
-          cursor_col = VGA_WIDTH - 1;
+          keyboard_state.buffer_index--;
         }
-        else
-          cursor_col = cursor_col - 1;
+        
+        framebuffer_write(cursor_row, cursor_col, ' ', 0xF, 0);
+        if (cursor_row != 0 || cursor_col != 0)
+        {
+          if (cursor_col == 0)
+          {
+            cursor_row = cursor_row - 1;
+            cursor_col = VGA_WIDTH - 1;
+          }
+          else
+            cursor_col = cursor_col - 1;
+        }
       }
       break;
 
@@ -368,6 +370,9 @@ void puts(char* ebx, uint32_t ecx, uint32_t edx) {
     } else {
       framebuffer_write(cursor_row, i, ebx[i], edx, 0);
     }
+    cursor_col = i;
   }
-  cursor_row = cursor_row + 1;
+  cursor_col = cursor_col + 1;
+  cursor_col_threshold = cursor_col;
+  // cursor_row = cursor_row + 1;
 }
