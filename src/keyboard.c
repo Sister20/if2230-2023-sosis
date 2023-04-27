@@ -11,6 +11,7 @@ static struct KeyboardDriverState keyboard_state = {
 
 static int keyboard_cursor_row = 0;
 static int keyboard_cursor_col = 0;
+static int current_focused_row = 0;
 
 const char keyboard_scancode_1_to_ascii_map[256] = {
     0,
@@ -361,4 +362,11 @@ void keyboard_isr(void)
     framebuffer_set_cursor(keyboard_cursor_row, keyboard_cursor_col);
   }
   pic_ack(IRQ_KEYBOARD);
+}
+
+void puts(char* ebx, uint32_t ecx, uint32_t edx) {
+  for (tssize_t i = 0; i < ecx; i++) {
+    framebuffer_write(current_focused_row, i, ebx[i], edx, 0);
+  }
+  current_focused_row = current_focused_row + 1;
 }
