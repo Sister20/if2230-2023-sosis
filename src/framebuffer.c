@@ -6,6 +6,7 @@
 static uint16_t *framebuffer = (uint16_t *) MEMORY_FRAMEBUFFER;
 uint8_t cursor_row = 0;
 uint8_t cursor_col = 0;
+uint8_t cursor_col_threshold = 0;
 static uint8_t foreground_color = 0;
 static uint8_t background_color = 0;
 

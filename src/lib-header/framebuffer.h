@@ -12,6 +12,7 @@
 
 extern uint8_t cursor_row;
 extern uint8_t cursor_col;
+extern uint8_t cursor_col_threshold;
 
 /**
  * Terminal framebuffer
