@@ -10,6 +10,9 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 
+extern uint8_t cursor_row;
+extern uint8_t cursor_col;
+
 /**
  * Terminal framebuffer
  * Resolution: 80x25
