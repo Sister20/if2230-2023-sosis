@@ -57,23 +57,13 @@ int main(void) {
     syscall(FS_WRITE, (uint32_t) &request, (uint32_t) &retcode, 0);
     if (retcode == 0) {
         syscall(5, (uint32_t) "owo\n", 4, 0xF);
-        // syscall(99, (uint32_t) "owo\n", 4, 0xF);
-        syscall(5, (uint32_t) "owo222222\n", 11, 0xF);
-        print("hello world >>>", 0xF);
-        // syscall(99, (uint32_t) "owo\n", 4, 0xF);
     }
     
     char buf[16];
     while (TRUE) {
+        print("User@Sosis:\\> ", 0x2);
         syscall(4, (uint32_t) buf, 16, 0);
-        syscall(5, (uint32_t) buf, 16, 0xF);
-        // fgets(buf, strlen(buf));
-        // print(buf, 0xF);
     }
 
     return 0;
-
-    // __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADBEEF));
-    // while (TRUE);
-    // return 0;
 }
