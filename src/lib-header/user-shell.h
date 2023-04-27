@@ -3,6 +3,9 @@
 
 #include "stdtype.h"
 #include "fat32.h"
+#include "keyboard.h"
+#include "string.h"
+#include "syscall.h"
 
 #define FS_READ 0
 #define FS_READ_DIR 1

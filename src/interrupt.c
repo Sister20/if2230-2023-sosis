@@ -65,7 +65,7 @@ void main_interrupt_handler(
         keyboard_isr();
         break;
     case 0x30:
-        syscall(cpu, info);
+        syscall_kernel(cpu, info);
         break;
     default:
         break;
@@ -86,7 +86,7 @@ void set_tss_kernel_current_stack(void) {
     _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
 
-void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
+void syscall_kernel(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
     switch (cpu.eax) {
         case 0: {
             struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;

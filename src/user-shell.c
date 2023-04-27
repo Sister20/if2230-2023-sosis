@@ -1,5 +1,12 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/fat32.h"
+#include "lib-header/user-shell.h"
+
+// static struct KeyboardDriverState keyboard_state = {
+//     .read_extended_mode = FALSE,
+//     .keyboard_input_on = FALSE,
+//     .buffer_index = 0,
+//     .keyboard_buffer = {'\0'}};
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -11,8 +18,34 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
+// void print(char* buf, uint8_t color) {
+//     syscall(TEXT_OUTPUT, (uint32_t) buf, strlen(buf), color);
+// }
+
+// void fgets(char* buf, tssize_t buf_size) {
+//     syscall(KEYBOARD_INPUT, (uint32_t) buf, buf_size, 0);
+// }
+
+// tssize_t fs_read(struct FAT32DriverRequest* request) {
+//     uint32_t retcode;
+//     syscall(FS_READ, (uint32_t) &request, (uint32_t) &retcode, 0);
+//     return retcode;
+// }
+
+// tssize_t fs_read_dir(struct FAT32DriverRequest* request) {
+//     uint32_t retcode;
+//     syscall(FS_READ_DIR, (uint32_t) &request, (uint32_t) &retcode, 0);
+//     return retcode;
+// }
+
+// tssize_t fs_delete(struct FAT32DriverRequest* request) {
+//     uint32_t retcode;
+//     syscall(FS_DELETE, (uint32_t) &request, (uint32_t) &retcode, 0);
+//     return retcode;
+// }
+
 int main(void) {
-     struct ClusterBuffer cl           = {0};
+    struct ClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
         .buf                   = &cl,
         .name                  = "ikanaide",
@@ -21,7 +54,7 @@ int main(void) {
         .buffer_size           = CLUSTER_SIZE,
     };
     int32_t retcode;
-    syscall(0, (uint32_t) &request, (uint32_t) &retcode, 0);
+    syscall(FS_WRITE, (uint32_t) &request, (uint32_t) &retcode, 0);
     if (retcode == 0)
         syscall(5, (uint32_t) "owo\n", 4, 0xF);
 
@@ -29,6 +62,8 @@ int main(void) {
     while (TRUE) {
         syscall(4, (uint32_t) buf, 16, 0);
         syscall(5, (uint32_t) buf, 16, 0xF);
+        // fgets(buf, strlen(buf));
+        // print(buf, 0xF);
     }
 
     return 0;
