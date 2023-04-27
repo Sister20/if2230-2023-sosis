@@ -1,4 +1,4 @@
-#include "../lib-header/string.h"
+#include "lib-header/string.h"
 /**
  * count length of string
 */
