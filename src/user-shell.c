@@ -12,37 +12,37 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("int $0x30");
 }
 
-// void print(char* buf, uint8_t color) {
-//     syscall(TEXT_OUTPUT, (uint32_t) buf, strlen(buf), color);
-// }
+void print(char* buf, uint8_t color) {
+    syscall(5, (uint32_t) buf, strlen(buf), color);
+}
 
-// void fgets(char* buf, tssize_t buf_size) {
-//     syscall(KEYBOARD_INPUT, (uint32_t) buf, buf_size, 0);
-// }
+void fgets(char* buf, tssize_t buf_size) {
+    syscall(KEYBOARD_INPUT, (uint32_t) buf, buf_size, 0);
+}
 
-// tssize_t fs_read(struct FAT32DriverRequest* request) {
-//     int8_t* retcode;
-//     syscall(FS_READ, request, (uint32_t) retcode, 0);
-//     return (*retcode);
-// }
+tssize_t fs_read(struct FAT32DriverRequest* request) {
+    int8_t retcode = 99;
+    syscall(FS_READ, (uint32_t) request, (uint32_t) &retcode, 0);
+    return (retcode);
+}
 
-// tssize_t fs_read_dir(struct FAT32DriverRequest* request) {
-//     int8_t* retcode;
-//     syscall(FS_READ_DIR, request, (uint32_t) retcode, 0);
-//     return (*retcode);
-// }
+tssize_t fs_read_dir(struct FAT32DriverRequest* request) {
+    int8_t retcode = 99;
+    syscall(FS_READ_DIR, (uint32_t) request, (uint32_t) &retcode, 0);
+    return (retcode);
+}
 
-// tssize_t fs_write(struct FAT32DriverRequest* request) {
-//     int8_t* retcode;
-//     syscall(FS_WRITE, request, (uint32_t) retcode, 0);
-//     return (*retcode);
-// }
+tssize_t fs_write(struct FAT32DriverRequest* request) {
+    int8_t retcode = 99;
+    syscall(FS_WRITE, (uint32_t) request, (uint32_t) &retcode, 0);
+    return (retcode);
+}
 
-// tssize_t fs_delete(struct FAT32DriverRequest* request) {
-//     int8_t* retcode;
-//     syscall(FS_DELETE, request, (uint32_t) retcode, 0);
-//     return (*retcode);
-// }
+tssize_t fs_delete(struct FAT32DriverRequest* request) {
+    int8_t retcode = 99;
+    syscall(FS_DELETE, (uint32_t) request, (uint32_t) &retcode, 0);
+    return (retcode);
+}
 
 int main(void) {
     struct ClusterBuffer cl           = {0};
@@ -55,9 +55,14 @@ int main(void) {
     };
     int32_t retcode;
     syscall(FS_WRITE, (uint32_t) &request, (uint32_t) &retcode, 0);
-    if (retcode == 0)
+    if (retcode == 0) {
         syscall(5, (uint32_t) "owo\n", 4, 0xF);
-
+        // syscall(99, (uint32_t) "owo\n", 4, 0xF);
+        syscall(5, (uint32_t) "owo222222\n", 11, 0xF);
+        print("hello world >>>", 0xF);
+        // syscall(99, (uint32_t) "owo\n", 4, 0xF);
+    }
+    
     char buf[16];
     while (TRUE) {
         syscall(4, (uint32_t) buf, 16, 0);
