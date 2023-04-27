@@ -12,6 +12,8 @@
         "framebuffer.h": "c",
         "idt.h": "c",
         "disk.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "string.h": "c",
+        "user-shell.h": "c"
     },
 }

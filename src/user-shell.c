@@ -1,5 +1,6 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/fat32.h"
+#include "lib-header/user-shell.h"
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -9,6 +10,30 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     // Note : gcc usually use %eax as intermediate register,
     //        so it need to be the last one to mov
     __asm__ volatile("int $0x30");
+}
+
+tssize_t fs_read(struct FAT32DriverRequest* request) {
+    int8_t* retcode;
+    syscall(FS_READ, request, (uint32_t) retcode, 0);
+    return (*retcode);
+}
+
+tssize_t fs_read_dir(struct FAT32DriverRequest* request) {
+    int8_t* retcode;
+    syscall(FS_READ_DIR, request, (uint32_t) retcode, 0);
+    return (*retcode);
+}
+
+tssize_t fs_write(struct FAT32DriverRequest* request) {
+    int8_t* retcode;
+    syscall(FS_WRITE, request, (uint32_t) retcode, 0);
+    return (*retcode);
+}
+
+tssize_t fs_delete(struct FAT32DriverRequest* request) {
+    int8_t* retcode;
+    syscall(FS_DELETE, request, (uint32_t) retcode, 0);
+    return (*retcode);
 }
 
 int main(void) {
