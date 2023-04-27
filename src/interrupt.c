@@ -99,5 +99,14 @@ void syscall(struct CPURegister cpu, __attribute__((unused)) struct InterruptSta
         memcpy((char *) cpu.ebx, buf, cpu.ecx);
     } else if (cpu.eax == 5) {
         puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
+    } else if (cpu.eax == 1) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int8_t*) cpu.ecx) = read_directory(request);
+    } else if (cpu.eax == 2) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int8_t*) cpu.ecx) = write(request);
+    } else if (cpu.eax == 3) {
+        struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+        *((int8_t*) cpu.ecx) = delete(request);
     }
 }
