@@ -93,19 +93,6 @@ void syscall_kernel(struct CPURegister cpu, __attribute__((unused)) struct Inter
             *((int8_t*) cpu.ecx) = read(request);
             break;
         }
-        case 4: {
-            keyboard_state_activate();
-            __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
-            while (is_keyboard_blocking());
-            char buf[KEYBOARD_BUFFER_SIZE];
-            get_keyboard_buffer(buf);
-            memcpy((char *) cpu.ebx, buf, cpu.ecx);
-            break;
-        }
-        case 5: {
-            puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
-            break;
-        }
         case 1: {
             struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
             *((int8_t*) cpu.ecx) = read_directory(request);
@@ -119,6 +106,19 @@ void syscall_kernel(struct CPURegister cpu, __attribute__((unused)) struct Inter
         case 3: {
             struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
             *((int8_t*) cpu.ecx) = delete(request);
+            break;
+        }
+        case 4: {
+            keyboard_state_activate();
+            __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
+            while (is_keyboard_blocking());
+            char buf[KEYBOARD_BUFFER_SIZE];
+            get_keyboard_buffer(buf);
+            memcpy((char *) cpu.ebx, buf, cpu.ecx);
+            break;
+        }
+        case 5: {
+            puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
             break;
         }
     }

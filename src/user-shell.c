@@ -2,12 +2,6 @@
 #include "lib-header/fat32.h"
 #include "lib-header/user-shell.h"
 
-// static struct KeyboardDriverState keyboard_state = {
-//     .read_extended_mode = FALSE,
-//     .keyboard_input_on = FALSE,
-//     .buffer_index = 0,
-//     .keyboard_buffer = {'\0'}};
-
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
     __asm__ volatile("mov %0, %%ecx" : /* <Empty> */ : "r"(ecx));
@@ -27,21 +21,27 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
 // }
 
 // tssize_t fs_read(struct FAT32DriverRequest* request) {
-//     uint32_t retcode;
-//     syscall(FS_READ, (uint32_t) &request, (uint32_t) &retcode, 0);
-//     return retcode;
+//     int8_t* retcode;
+//     syscall(FS_READ, request, (uint32_t) retcode, 0);
+//     return (*retcode);
 // }
 
 // tssize_t fs_read_dir(struct FAT32DriverRequest* request) {
-//     uint32_t retcode;
-//     syscall(FS_READ_DIR, (uint32_t) &request, (uint32_t) &retcode, 0);
-//     return retcode;
+//     int8_t* retcode;
+//     syscall(FS_READ_DIR, request, (uint32_t) retcode, 0);
+//     return (*retcode);
+// }
+
+// tssize_t fs_write(struct FAT32DriverRequest* request) {
+//     int8_t* retcode;
+//     syscall(FS_WRITE, request, (uint32_t) retcode, 0);
+//     return (*retcode);
 // }
 
 // tssize_t fs_delete(struct FAT32DriverRequest* request) {
-//     uint32_t retcode;
-//     syscall(FS_DELETE, (uint32_t) &request, (uint32_t) &retcode, 0);
-//     return retcode;
+//     int8_t* retcode;
+//     syscall(FS_DELETE, request, (uint32_t) retcode, 0);
+//     return (*retcode);
 // }
 
 int main(void) {
