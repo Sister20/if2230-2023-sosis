@@ -47,3 +47,17 @@ void strcpy(char *str_dest[], char str_src[]){
     *str_dest[i] = '\0';
     return;
 }
+
+void split(char* buf, char* first_section, char* second_section, int offset) {
+    int buf_len = strlen(buf);
+    for (int i = 0; i < buf_len; i++) {
+        first_section[i] = buf[i];
+    }
+    first_section[offset - 1] = '\0';
+
+    for (int i = 0; i < buf_len - offset; i++)
+    {
+        second_section[i] = buf[i + offset];
+    }
+    second_section[buf_len - offset] = '\0';
+}

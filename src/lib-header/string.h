@@ -20,9 +20,12 @@ int strcmp(char str1[], char str2[]);
 void strcpy(char *str_dest[], char str_src[]);
 
 /**
- * Parse user command, call the apropriate function if parsed result is known, otherwise puts error
- * @param buf user entered string
+ * Split buf into 2 parts by offset
+ * @param buf string
+ * @param first_section first part of split
+ * @param second_section second part of split
+ * @param offset split index
 */
-void commandParser(char* buf);
+void split(char* buf, char* first_section, char* second_section, int offset);
 
 #endif
