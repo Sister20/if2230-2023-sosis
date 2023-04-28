@@ -367,12 +367,13 @@ void puts(char* ebx, uint32_t ecx, uint32_t edx) {
   for (tssize_t i = 0; i < ecx; i++) {
     if (ebx[i] == '\n') {
       cursor_row++;
+      cursor_col = 0;
     } else {
-      framebuffer_write(cursor_row, i, ebx[i], edx, 0);
+      framebuffer_write(cursor_row, cursor_col + i, ebx[i], edx, 0);
+      if(i == ecx - 1) {
+        cursor_col = cursor_col + ecx;
+      }
     }
-    cursor_col = i;
   }
-  cursor_col = cursor_col + 1;
   cursor_col_threshold = cursor_col;
-  // cursor_row = cursor_row + 1;
 }
