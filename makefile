@@ -9,7 +9,7 @@ OUTPUT_FOLDER = bin
 ISO_NAME      = os2023
 
 # Flags
-WARNING_CFLAG = -Wall -Wextra -Werror
+WARNING_CFLAG = -Wextra -Werror
 DEBUG_CFLAG   = -ffreestanding -fshort-wchar -g
 STRIP_CFLAG   = -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs
 CFLAGS        = $(DEBUG_CFLAG) $(WARNING_CFLAG) $(STRIP_CFLAG) -m32 -c -I$(SOURCE_FOLDER)
@@ -70,10 +70,15 @@ user-shell:
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/user-entry.s -o user-entry.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user-shell.c -o user-shell.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/string.c -o string.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/fs-syscall.c -o fs-syscall.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/syscall.c -o syscall.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/commands.c -o commands.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
-		user-entry.o user-shell.o string.o syscall.o -o $(OUTPUT_FOLDER)/shell
+		user-entry.o user-shell.o string.o fs-syscall.o syscall.o commands.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
+		user-entry.o user-shell.o string.o fs-syscall.o syscall.o commands.o -o $(OUTPUT_FOLDER)/shell_elf
+	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/shell
 	@rm -f *.o
 

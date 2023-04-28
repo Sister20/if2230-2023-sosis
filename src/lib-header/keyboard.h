@@ -55,7 +55,7 @@ void get_keyboard_buffer(char *buf);
 // Check whether keyboard ISR is active or not - @return Equal with keyboard_input_on value
 bool is_keyboard_blocking(void);
 
-void puts(char* ebx, uint32_t ecx, uint32_t edx);
+void puts(const char* ebx, uint32_t ecx, uint32_t edx);
 /* -- Keyboard Interrupt Service Routine -- */
 
 /**

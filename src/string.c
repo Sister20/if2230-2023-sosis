@@ -2,9 +2,9 @@
 /**
  * count length of string
 */
-int strlen(char str[]){
+int strlen(const char str[]){
     int count = 0;
-    while(str[count]!='\0'){
+    while(str[count] != '\0'){
         count++;
     }
     return count;
@@ -38,12 +38,11 @@ int strcmp(char str1[], char str2[]){
 /**
  * copy string
 */
-void strcpy(char *str_dest[], char str_src[]){
+void strcpy(char *str_dest, const char *str_src) {
     int i = 0;
-    while(str_src[i]!='\0'){
-        *str_dest[i] = str_src[i];
+    while (str_src[i] != '\0') {
+        str_dest[i] = str_src[i];
         i++;
     }
-    *str_dest[i] = '\0';
-    return;
+    str_dest[i] = '\0';
 }

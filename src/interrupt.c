@@ -118,10 +118,7 @@ void syscall_kernel(struct CPURegister cpu, __attribute__((unused)) struct Inter
             break;
         }
         case 5: {
-            puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
-            break;
-        }
-        default: {
+            puts((const char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
             break;
         }
     }

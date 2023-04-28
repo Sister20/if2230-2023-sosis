@@ -88,10 +88,10 @@ int8_t read_directory(struct FAT32DriverRequest request) {
             foundName = TRUE;
             if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
                 uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
-                uint16_t date;
-                get_date(&date);
-                directory_table->table[i].access_date = date;
-                write_clusters(directory_table, cluster_number, 1);
+                // uint16_t date;
+                // get_date(&date);
+                // directory_table->table[i].access_date = date;
+                // write_clusters(directory_table, cluster_number, 1);
                 read_clusters(directory_table, cluster_number, 1);
                 return 0;
             }

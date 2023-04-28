@@ -2,8 +2,9 @@
 #define COMMANDS_H
 #include "stdtype.h"
 #include "fs-syscall.h"
+#include "string.h"
 
-void cd(uint32_t clusterNumber, char* path);
+int cd(uint32_t* clusterNumber, char* path);
 
 void ls(uint32_t clusterNumber);
 

@@ -16,6 +16,8 @@
         "string.h": "c",
         "user-shell.h": "c",
         "syscall.h": "c",
-        "fs-syscall.h": "c"
+        "fs-syscall.h": "c",
+        "fat32.h": "c",
+        "commands.h": "c",
     },
 }

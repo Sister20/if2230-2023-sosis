@@ -5,7 +5,7 @@
 /**
  * count length of string
 */
-int strlen(char str[]);
+int strlen(const char str[]);
 
 /**
  * Compare string
@@ -17,12 +17,6 @@ int strcmp(char str1[], char str2[]);
 /**
  * copy string
 */
-void strcpy(char *str_dest[], char str_src[]);
-
-/**
- * Parse user command, call the apropriate function if parsed result is known, otherwise puts error
- * @param buf user entered string
-*/
-void commandParser(char* buf);
+void strcpy(char *str_dest, const char *str_src);
 
 #endif
