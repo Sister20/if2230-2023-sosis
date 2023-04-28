@@ -3,7 +3,6 @@
 
 #include "stdtype.h"
 #include "fat32.h"
-#include "keyboard.h"
 #include "string.h"
 #include "syscall.h"
 
@@ -13,6 +12,7 @@
 #define FS_DELETE 3
 #define KEYBOARD_INPUT 4
 #define TEXT_OUTPUT 5
+
 
 /**
  * Get character from keyboard input 
