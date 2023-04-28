@@ -1,9 +1,5 @@
 #include "lib-header/commands.h"
 
-/**
- * @param clusterNumber current cluster number
- * @param path path to dir
-*/
 int cd(uint32_t* clusterNumber, char* folderName) {
     char name[8];
     if (strlen(folderName) <= 8) {
@@ -16,10 +12,24 @@ int cd(uint32_t* clusterNumber, char* folderName) {
             }
             i++;
         }
+    } else {
+        return -1;
     }
 
     if (strcmp(folderName, "..\0") == 0) {
-        return 0;
+        if (clusterNumber == ROOT_CLUSTER_NUMBER) {
+            return 0;
+        } else {
+            // move back to its parent
+            struct FAT32DriverRequest request = {
+                .buf                   = (uint8_t*) 0,
+                .name                  = {*name}, // change this to parent name
+                .ext                   = "\0\0\0",
+                .parent_cluster_number = *clusterNumber,
+                .buffer_size           = 0,
+            };
+            return 0;
+        }
     } else {
         struct FAT32DriverRequest request = {
             .buf                   = (uint8_t*) 0,
