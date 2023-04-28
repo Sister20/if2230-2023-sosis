@@ -18,7 +18,7 @@ void create_fat32(void) {
 
     struct FAT32DirectoryTable directory_table = {0};
     // Create a buffer to hold the FAT data
-    struct FAT32FileAllocationTable fat;
+    struct FAT32FileAllocationTable fat = {0};
     fat.cluster_map[0] = CLUSTER_0_VALUE;
     fat.cluster_map[1] = CLUSTER_1_VALUE;
     fat.cluster_map[2] = FAT32_FAT_END_OF_FILE;
@@ -126,15 +126,19 @@ int8_t read(struct FAT32DriverRequest request) {
             // get_date(&date);
             // driver_state.dir_table_buf.table[i].access_date = date;
             // write_clusters(&driver_state.dir_table_buf, cluster_number, 1);
-            while(bytes_left_to_read > 0){
-                uint32_t bytes_to_read;
-                if(bytes_left_to_read < CLUSTER_SIZE){
+            uint32_t bytes_to_read = (bytes_left_to_read < CLUSTER_SIZE) ? bytes_left_to_read : CLUSTER_SIZE;
+            while (bytes_left_to_read > 0)
+            {
+                read_clusters(request.buf + entry.filesize - bytes_left_to_read, cluster_number, 1);
+                bytes_left_to_read -= bytes_to_read;
+                if (bytes_left_to_read < CLUSTER_SIZE)
+                {
                     bytes_to_read = bytes_left_to_read;
-                }else{
+                }
+                else
+                {
                     bytes_to_read = CLUSTER_SIZE;
                 }
-                read_clusters(request.buf, cluster_number, 1);
-                bytes_left_to_read -= bytes_to_read;
                 cluster_number = driver_state.fat_table.cluster_map[cluster_number];
             }
 
@@ -176,25 +180,29 @@ int8_t write(struct FAT32DriverRequest request) {
         int32_t total_bytes = request.buffer_size;
         uint32_t fatIndex = 0;
         uint32_t file_size = 0;
+        uint32_t written_data = 0;
         for (tssize_t i = 3; i < CLUSTER_MAP_SIZE; i++) {
-            if (driver_state.fat_table.cluster_map[i] == 0 && total_bytes >= 0) {
+            if (driver_state.fat_table.cluster_map[i] == 0 && total_bytes > 0) {
                 if (counter >= 2) {
                     driver_state.fat_table.cluster_map[prev_cluster_number] = i;
                 } else {
                     fatIndex = i;
                 }
-                write_clusters(request.buf, i, 1);
+                write_clusters(request.buf + written_data, i, 1);
+                total_bytes -= CLUSTER_SIZE;
+                written_data += CLUSTER_SIZE;
                 if (total_bytes > CLUSTER_SIZE) {
                     file_size += CLUSTER_SIZE;
                 } else {
                     file_size += total_bytes;
                 }
-                total_bytes -= CLUSTER_SIZE;
-                prev_cluster_number = i;
+                if (total_bytes <= 0) {
+                    driver_state.fat_table.cluster_map[prev_cluster_number] = FAT32_FAT_END_OF_FILE;
+                    break;
+                } else {
+                    prev_cluster_number = i;
+                }
                 counter++;
-            }
-            if (total_bytes <= 0) {
-                break;
             }
         }
         

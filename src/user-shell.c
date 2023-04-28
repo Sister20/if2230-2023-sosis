@@ -14,20 +14,6 @@ void log(char* buf) {
     syscall(5, (uint32_t)buf, strlen(buf), 0xF);
 }
 
-void split(char* buf, char* first_section, char* second_section, int offset) {
-    int buf_len = strlen(buf);
-    for (int i = 0; i < buf_len; i++) {
-        first_section[i] = buf[i];
-    }
-    first_section[offset - 1] = '\0';
-
-    for (int i = 0; i < buf_len - offset; i++)
-    {
-        second_section[i] = buf[i + offset];
-    }
-    second_section[buf_len - offset] = '\0';
-}
-
 void commandParser(char* buf)
 {
     int space_index = 0;
@@ -58,76 +44,76 @@ void commandParser(char* buf)
     {
         switch (space_index)
         {
-        // case 2:
-        // {
-        //     // process command with 2 char long
-        //     int offset = 3;
-        //     char two_char_cmd[offset];
-        //     char args[strlen(buf) - offset + 1];
-        //     split(buf, two_char_cmd, args, offset);
-        //     if (strcmp(two_char_cmd, "cd\0") == 0) {
-        //         print("Caught command: cd\n", 0xF);
-        //         print("Caught dirname: ", 0xF);
-        //         print(args, 0xF);
-        //         print("\n", 0xF);
-        //         // int8_t retcode = cd(&cwdCluster, path);
-        //         // if (retcode == 0) {
-        //         //     char success[10] = "Success!\n";
-        //         //     print(success, 0xF);
-        //         // } else {
-        //         //     char failed[7] = "Fail!\n";
-        //         //     print(failed, 0xF);
-        //         // }
-        //     }
-        //     else if (strcmp(two_char_cmd, "ls") == 0)
-        //     {
-        //         // ls(cwdCluster);
-        //         print("Caught command: ls\n", 0xF);
-        //     }
-        //     else if (strcmp(two_char_cmd, "cp") == 0)
-        //     {
-        //         print("Caught command: cp\n", 0xF);
-        //     }
-        //     else if (strcmp(two_char_cmd, "rm") == 0)
-        //     {
-        //         print("Caught command: rm\n", 0xF);
-        //     }
-        //     else if (strcmp(two_char_cmd, "mv") == 0)
-        //     {
-        //         print("Caught command: mv\n", 0xF);
-        //     } else {
-        //         log("on else\n");
-        //     }
-        //     break;
-        // }
-        // case 3: {
-        //     // cat command : cat filename
-        //     int offset = 4;
-        //     char three_char_cmd[offset];
-        //     char filename[strlen(buf) - offset + 1];
-        //     split(buf, three_char_cmd, filename, offset);
-        //     if (strcmp(three_char_cmd, "cat\0") == 0) {
-        //         print("Caught command: cat\n", 0xF);
-        //         print("Caught filename: ", 0xF);
-        //         print(filename, 0xF);
-        //         print("\n", 0xF);
-        //     }
-        //     break;
-        // }
-        // case 5: {
-        //     // mkdir command : mkdir dirname
-        //     int offset = 6;
-        //     char five_char_cmd[offset];
-        //     char dirname[strlen(buf) - offset + 1];
-        //     split(buf, five_char_cmd, dirname, offset);
-        //     if (strcmp(five_char_cmd, "mkdir\0") == 0) {
-        //         print("Caught command: mkdir\n", 0xF);
-        //         print("Caught dirname: ", 0xF);
-        //         print(dirname, 0xF);
-        //         print("\n", 0xF);
-        //     }
-        //     break;
-        // }
+        case 2:
+        {
+            // process command with 2 char long
+            int offset = 3;
+            char two_char_cmd[offset];
+            char args[strlen(buf) - offset + 1];
+            split(buf, two_char_cmd, args, offset);
+            if (strcmp(two_char_cmd, "cd\0") == 0) {
+                print("Caught command: cd\n", 0xF);
+                print("Caught dirname: ", 0xF);
+                print(args, 0xF);
+                print("\n", 0xF);
+                // int8_t retcode = cd(&cwdCluster, path);
+                // if (retcode == 0) {
+                //     char success[10] = "Success!\n";
+                //     print(success, 0xF);
+                // } else {
+                //     char failed[7] = "Fail!\n";
+                //     print(failed, 0xF);
+                // }
+            }
+            else if (strcmp(two_char_cmd, "ls") == 0)
+            {
+                // ls(cwdCluster);
+                print("Caught command: ls\n", 0xF);
+            }
+            else if (strcmp(two_char_cmd, "cp") == 0)
+            {
+                print("Caught command: cp\n", 0xF);
+            }
+            else if (strcmp(two_char_cmd, "rm") == 0)
+            {
+                print("Caught command: rm\n", 0xF);
+            }
+            else if (strcmp(two_char_cmd, "mv") == 0)
+            {
+                print("Caught command: mv\n", 0xF);
+            } else {
+                log("on else\n");
+            }
+            break;
+        }
+        case 3: {
+            // cat command : cat filename
+            int offset = 4;
+            char three_char_cmd[offset];
+            char filename[strlen(buf) - offset + 1];
+            split(buf, three_char_cmd, filename, offset);
+            if (strcmp(three_char_cmd, "cat\0") == 0) {
+                print("Caught command: cat\n", 0xF);
+                print("Caught filename: ", 0xF);
+                print(filename, 0xF);
+                print("\n", 0xF);
+            }
+            break;
+        }
+        case 5: {
+            // mkdir command : mkdir dirname
+            int offset = 6;
+            char five_char_cmd[offset];
+            char dirname[strlen(buf) - offset + 1];
+            split(buf, five_char_cmd, dirname, offset);
+            if (strcmp(five_char_cmd, "mkdir\0") == 0) {
+                print("Caught command: mkdir\n", 0xF);
+                print("Caught dirname: ", 0xF);
+                print(dirname, 0xF);
+                print("\n", 0xF);
+            }
+            break;
+        }
         case 7: {
             // whereis command : whereis name
             int offset = 8;
