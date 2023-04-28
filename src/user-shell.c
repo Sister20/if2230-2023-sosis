@@ -1,6 +1,6 @@
-#include "lib-header/stdtype.h"
-#include "lib-header/fat32.h"
 #include "lib-header/user-shell.h"
+
+uint32_t cwdCluster = ROOT_CLUSTER_NUMBER;
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx) {
     __asm__ volatile("mov %0, %%ebx" : /* <Empty> */ : "r"(ebx));
@@ -44,6 +44,8 @@ tssize_t fs_delete(struct FAT32DriverRequest* request) {
     return (retcode);
 }
 
+
+
 int main(void) {
     struct ClusterBuffer cl           = {0};
     struct FAT32DriverRequest request = {
@@ -62,7 +64,10 @@ int main(void) {
     char buf[16];
     while (TRUE) {
         print("User@Sosis:\\> ", 0x2);
-        syscall(4, (uint32_t) buf, 16, 0);
+        fgets(buf, strlen(buf));
+
+        // parse buf here
+
     }
 
     return 0;
