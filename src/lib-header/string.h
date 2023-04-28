@@ -19,6 +19,10 @@ int strcmp(char str1[], char str2[]);
 */
 void strcpy(char *str_dest[], char str_src[]);
 
-
+/**
+ * Parse user command, call the apropriate function if parsed result is known, otherwise puts error
+ * @param buf user entered string
+*/
+void commandParser(char* buf);
 
 #endif
