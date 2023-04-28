@@ -73,10 +73,37 @@ void commandParser(char* buf)
             else if (strcmp(two_char_cmd, "cp") == 0)
             {
                 print("Caught command: cp\n", 0xF);
+                int count = 0;
+                for(int i = 0; i< strlen(args); i++){
+                    if(args[i] == ' '){
+                        break;
+                    }
+                    count++;
+                }
+                int secOffset = count+1;
+                char first_string_arg[secOffset];
+                char second_string_arg[strlen(args) - secOffset + 1];
+                split(args, first_string_arg, second_string_arg, secOffset);
+                int retcode = cp(cwdCluster, first_string_arg, second_string_arg);
+                if (retcode == 0) {
+                    char success[10] = "Success!\n";
+                    print(success, 0xF);
+                } else {
+                    char failed[7] = "Fail!\n";
+                    print(failed, 0xF);
+                }
             }
             else if (strcmp(two_char_cmd, "rm") == 0)
             {
                 print("Caught command: rm\n", 0xF);
+                int retcode = rm(cwdCluster, args);
+                if (retcode == 0) {
+                    char success[10] = "Success!\n";
+                    print(success, 0xF);
+                } else {
+                    char failed[7] = "Fail!\n";
+                    print(failed, 0xF);
+                }
             }
             else if (strcmp(two_char_cmd, "mv") == 0)
             {
