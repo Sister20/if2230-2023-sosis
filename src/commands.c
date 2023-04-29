@@ -483,6 +483,7 @@ void whereis(struct CWDdata cwd_data, char *filename){
                     // search that file here 
 
                     //print path
+                    strcat(path, "/");
                     strcat(path, req.name);
                     //print filename
                     log(path);
@@ -521,8 +522,7 @@ void whereis(struct CWDdata cwd_data, char *filename){
                                     // search that file here 
 
                                     //print path
-            
-            
+                                    strcat(path, "/");
                                     strcat(path, req_temp.name);
                                     strcat(path, "/");
                                     strcat(path, req.name);
@@ -551,6 +551,7 @@ void whereis(struct CWDdata cwd_data, char *filename){
                     // search that file here 
 
                     //print path
+                    strcat(path, "/");
                     strcat(path, req.name);
                     //print filename
                     log(path);
