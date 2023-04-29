@@ -81,27 +81,18 @@ int8_t read_directory(struct FAT32DriverRequest request) {
         return -1;
     }
 
-    struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)request.buf;
-    bool foundName = FALSE;
+    read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
     for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
-        if (memcmp(directory_table->table[i].name, request.name, 8) == 0) {
-            foundName = TRUE;
-            if (directory_table->table[i].attribute == ATTR_SUBDIRECTORY) {
-                uint32_t cluster_number = ((uint32_t)directory_table->table[i].cluster_high << 16) | directory_table->table[i].cluster_low;
-                uint16_t date;
-                get_date(&date);
-                directory_table->table[i].access_date = date;
-                write_clusters(directory_table, cluster_number, 1);
-                read_clusters(directory_table, cluster_number, 1);
+        struct FAT32DirectoryEntry entry = driver_state.dir_table_buf.table[i];
+        if (memcmp(entry.name, request.name, 8) == 0) {
+            if (entry.attribute == ATTR_SUBDIRECTORY) {
+                // Found folder
+                read_clusters(request.buf, i, 1);
                 return 0;
             }
-        } 
+        }
     }
-    if (foundName) {
-        return 1;
-    } else {
-        return 2;
-    }
+    return 2;
 }
 
 int8_t read(struct FAT32DriverRequest request) {
