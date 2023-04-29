@@ -48,6 +48,26 @@ void strcpy(char *str_dest, char *str_src){
     return;
 }
 
+
+void strncpy(char *str_dest, char *str_src, tssize_t n) {
+    tssize_t i;
+    for (i = 0; i < n && str_src[i] != '\0'; i++) {
+        str_dest[i] = str_src[i];
+    }
+    for (; i < n; i++) {
+        str_dest[i] = '\0';
+    }
+}
+
+void strcat(char *dest, const char *src) {
+    tssize_t dest_len = strlen(dest);
+    tssize_t i;
+    for (i = 0; src[i] != '\0'; i++) {
+        dest[dest_len + i] = src[i];
+    }
+    dest[dest_len + i] = '\0';
+}
+
 void split(char* buf, char* first_section, char* second_section, int offset) {
     int buf_len = strlen(buf);
     for (int i = 0; i < buf_len; i++) {
