@@ -9,7 +9,11 @@ struct CWDdata {
     char cwdName[8];
 };
 
-int cd(struct CWDdata* cwd_data, char* folderName);
+void print(char *buf, uint8_t color);
+
+void log(char *buf);
+
+void cd(struct CWDdata* cwd_data, char* folderName);
 
 void ls(uint32_t clusterNumber);
 
