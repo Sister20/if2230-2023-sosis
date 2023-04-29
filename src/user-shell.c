@@ -1,24 +1,20 @@
 #include "lib-header/user-shell.h"
 
-// uint32_t cwdCluster = ROOT_CLUSTER_NUMBER;
-
 struct CWDdata cwd_data = {
     .currentCluster = ROOT_CLUSTER_NUMBER,
-    .cwdName = {"root\0\0\0\0"}};
-
-void print(char *buf, uint8_t color)
-{
-    syscall(5, (uint32_t)buf, strlen(buf), color);
-}
+    .cwdName = {"\0\0\0\0\0\0\0\0"}};
 
 void fgets(char *buf, tssize_t buf_size)
 {
     syscall(KEYBOARD_INPUT, (uint32_t)buf, buf_size, 0);
 }
 
-void log(char *buf)
-{
-    syscall(5, (uint32_t)buf, strlen(buf), 0xF);
+void printCWD() {
+    print("User@Sosis:\\", 0x2);
+    // if (strcmp(cwd_data.cwdName, "root\0\0\0\0") != 0) {
+    // print(cwd_data.cwdName, 0x2);
+    // }
+    print("> ", 0x2);
 }
 
 void commandParser(char *buf)
@@ -64,16 +60,7 @@ void commandParser(char *buf)
                 print("Caught dirname: ", 0xF);
                 print(args, 0xF);
                 print("\n", 0xF);
-                int retcode = cd(&cwd_data, args);
-                if (retcode == 0)
-                {
-                    // print("Success!\n", 0x2);
-                }
-                else
-                {
-                    // print("Fail!\n", 0x4);
-                }
-                // return;
+                cd(&cwd_data, args);
             }
             else if (strcmp(two_char_cmd, "ls") == 0)
             {
@@ -94,7 +81,7 @@ void commandParser(char *buf)
                 char first_string_arg[secOffset];
                 char second_string_arg[strlen(args) - secOffset + 1];
                 split(args, first_string_arg, second_string_arg, secOffset);
-                int retcode = cp(cwdCluster, first_string_arg, second_string_arg);
+                int retcode = cp(cwd_data.currentCluster, first_string_arg, second_string_arg);
                 if (retcode == 0) {
                     char success[10] = "Success!\n";
                     print(success, 0xF);
@@ -106,7 +93,7 @@ void commandParser(char *buf)
             else if (strcmp(two_char_cmd, "rm") == 0)
             {
                 print("Caught command: rm\n", 0xF);
-                int retcode = rm(cwdCluster, args);
+                int retcode = rm(cwd_data.currentCluster, args);
                 if (retcode == 0) {
                     char success[10] = "Success!\n";
                     print(success, 0xF);
@@ -214,7 +201,7 @@ int main(void)
     char buf[26];
     while (TRUE)
     {
-        print("User@Sosis:\\> ", 0x2);
+        printCWD();
         fgets(buf, 26);
         // parse buf here
         commandParser(buf);
