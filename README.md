@@ -3,7 +3,6 @@ Tugas Besar IF2230 - Sistem Operasi 2023
 
 ## **Table of Contents**
 * [General Information](#general-information)
-* [Screenshot](#screenshots)
 * [Technologies Used](#technologies-used)
 * [Setup](#how-to-run-and-compile-windows)
 * [Compile and Run](#how-to-run-and-compile-windows)
@@ -98,4 +97,4 @@ make insert-shell
 | ---------- | :------: |
 | Milestone 1 |  :heavy_check_mark:  |
 | Milestone 2 |  :heavy_check_mark:  |
-| Milestone 3 |    |
+| Milestone 3 |  :heavy_check_mark:  |
