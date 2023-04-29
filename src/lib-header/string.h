@@ -48,4 +48,13 @@ void split(char* buf, char* first_section, char* second_section, int offset);
  * @param str resulting number in string form
 */
 void parse_int(uint32_t num, char *str);
+
+/**
+ * Split buf into 2 parts by offset
+ * @param buf string
+ * @param first_section first part of split
+ * @param second_section second part of split
+ * @param offset split index
+*/
+void split_ext(char* buf, char* first_section, char* second_section);
 #endif
