@@ -87,7 +87,8 @@ int8_t read_directory(struct FAT32DriverRequest request) {
         if (memcmp(entry.name, request.name, 8) == 0) {
             if (entry.attribute == ATTR_SUBDIRECTORY) {
                 // Found folder
-                read_clusters(request.buf, i, 1);
+                // uint32_t cluster_number = driver_state.fat_table.cluster_map[request.parent_cluster_number];
+                read_clusters(request.buf, request.parent_cluster_number, 1);
                 return 0;
             }
         }
