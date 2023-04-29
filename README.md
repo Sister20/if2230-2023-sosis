@@ -28,7 +28,11 @@ Milestone ini akan berfokus kepada interrupt, simple hardware device driver untu
 * CMOS Filesystem
 
 ### Milestone 3
-*TBA*
+ Milestone ketiga akan berfokus kepada Shell yang berjalan pada User Mode.
+* Paging
+* User Mode
+* Shell
+
 
 
 ## **Screenshots**
@@ -68,16 +72,12 @@ sudo apt install gcc nasm make qemu-system-x86 genisoimage
 
 1. Open WSL or Linux terminal
 2. If using XServer, open XServer using the created shortcut, and run ``echo ‘export DISPLAY=`grep -oP "(?<=nameserver ).+" /etc/resolv.conf`:0.0’ >> ~/.bashrc`` in the terminal
-3. Navigate to the root of the cloned repository in terminal, run the following to create a blank OS disk
+3. run these two commands to enter the user program into the operating system
 ```
 make disk
 ```
-4. Run these two commands to build and start the OS
 ```
-make all
-```
-```
-make run
+make insert-shell
 ```
 
 5. If the OS is unable to start, try opening this repository in Visual Studio Code and start `Run and Debug` or press `F5`.
@@ -102,4 +102,4 @@ make run
 | ---------- | :------: |
 | Milestone 1 |  :heavy_check_mark:  |
 | Milestone 2 |  :heavy_check_mark:  |
-| Milestone 2 |    |
+| Milestone 3 |    |
