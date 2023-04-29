@@ -519,12 +519,6 @@ void search(struct CWDdata cwd_data, char name[]){
                         //print filename
                         log(path);
 
-                        //print extension if exist
-                        if (entry.ext[0] != '\0')
-                        {
-                            log(".");
-                            log(entry.ext);
-                        }
                         log("     ");
                         // path[100]="\0\0\0\0";
                         strcpy(path, "\0\0\0\0");
@@ -533,10 +527,12 @@ void search(struct CWDdata cwd_data, char name[]){
                     cwd_data.currentCluster = (((uint32_t)entry.cluster_high << 16) | entry.cluster_low);
                     search(cwd_data, req.name);
                 }else{
-                    if (strcmp(entry.name, req.name) == 0) {
+                    if (memcmp(entry.name, req.name, strlen(req.name)) == 0) {
                         // search that file here 
 
                         //print path
+                        strcat(path, "/");
+                        strcat(path, parent.name);
                         strcat(path, "/");
                         strcat(path, req.name);
                         //print filename
