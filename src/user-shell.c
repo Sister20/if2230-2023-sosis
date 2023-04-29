@@ -147,10 +147,12 @@ void commandParser(char *buf)
             split(buf, seven_char_cmd, name, offset);
             if (strcmp(seven_char_cmd, "whereis\0") == 0)
             {
-                print("Caught command: whereis\n", 0xF);
-                print("Caught name: ", 0xF);
-                log(name);
-                print("\n", 0xF);
+                // print("Caught command: whereis\n", 0xF);
+                // print("Caught name: ", 0xF);
+                // log(name);
+                // print("\n", 0xF);
+
+                whereis(cwd_data, name);
             }
         }
         else

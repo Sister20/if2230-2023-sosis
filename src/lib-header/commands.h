@@ -21,13 +21,13 @@ void ls(struct CWDdata cwd_data);
 
 void mkdir(uint32_t clusterNumber, char* dirName);
 
-void cat(uint32_t clusterNumber, char* fileName, char* fileExt);
+void cat(uint32_t clusterNumber, char* fileName);
 
 int cp(uint32_t clusterNumber, char* sourceFileName, char* destinationFileName);
 
 int rm(uint32_t clusterNumber, char* filePath);
 
-void whereis(struct CWDdata *cwd_data, char *filename);
+void whereis(struct CWDdata cwd_data, char *filename);
 
 void mv(struct CWDdata *cwd_data, char *src, char *dest);
 

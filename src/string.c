@@ -110,3 +110,26 @@ void parse_int(uint32_t num, char *str) {
         end--;
     }
 }
+
+void split_ext(char* buf, char* first_section, char* second_section){
+    int buf_len = strlen(buf);
+    int i = 0;
+    while(i<buf_len && buf[i]!='.') {
+        first_section[i] = buf[i];
+        i++;
+    }
+    first_section[i] = '\0';
+    if(i<buf_len){
+        i++;
+        int j = 0;
+        while(i<buf_len){
+            second_section[j] = buf[i];
+            i++;
+            j++;
+        }
+        second_section[j] = '\0';
+    }else{
+        second_section[0] = '\0';
+    }
+
+}

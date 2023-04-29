@@ -225,16 +225,17 @@ void mkdir(uint32_t clusterNumber, char *dirName)
     }
 }
 
-void cat(uint32_t clusterNumber, char *fileName, char *fileExt)
+void cat(uint32_t clusterNumber, char *fileName)
 {
     struct ClusterBuffer cbuf[4];
     struct FAT32DriverRequest request = {
         .buf = cbuf,
-        .name = {*fileName},
-        .ext = {*fileExt},
+        .name = {0},
+        .ext = {0},
         .parent_cluster_number = clusterNumber,
         .buffer_size = 4 * CLUSTER_SIZE,
     };
+    strncpy(request.name, fileName, 8);
     int32_t retcode;
     syscall(FS_READ, (uint32_t)&request, (uint32_t)&retcode, 0);
 
@@ -243,7 +244,8 @@ void cat(uint32_t clusterNumber, char *fileName, char *fileExt)
     case 0:
     {
         syscall(TEXT_OUTPUT, (uint32_t) "cat: File read\n", 15, 0xF);
-        // chore: output file contents
+
+        // log(cbuf); chore: fix
         break;
     }
     case 1:
@@ -428,7 +430,7 @@ int rm(uint32_t clusterNumber, char *fileName)
  * @param cwd_data current working directory
  * @param filename file name
 */
-void whereis(struct CWDdata *cwd_data, char *filename){
+void whereis(struct CWDdata cwd_data, char *filename){
     // print filename
     log(filename);
     log(": ");
@@ -460,7 +462,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
             .buf                   = &dir_table,
             .name                  = {0},
             .ext                   = {0},
-            .parent_cluster_number = cwd_data->currentCluster,
+            .parent_cluster_number = cwd_data.currentCluster,
             .buffer_size           = CLUSTER_SIZE,
     };
     strncpy(req.name, name, 8);
@@ -470,17 +472,18 @@ void whereis(struct CWDdata *cwd_data, char *filename){
     if(retcode==0){
         // search file
         bool found = FALSE;
-        uint32_t index = 0;
+        uint32_t index = 1;
+        char path[100]="/root\0\0\0\0";
+
         struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)req.buf;
-        while (!found && index < CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)) {
+        while (!found && index < 8*CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)) {
             struct FAT32DirectoryEntry entry = directory_table->table[index];
             if(entry.attribute==ATTR_SUBDIRECTORY){
                 if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
                     // search that file here 
 
                     //print path
-                    char path[100];
-                    strcat(path, "/root/");
+                    strcat(path, "/");
                     strcat(path, req.name);
                     //print filename
                     log(path);
@@ -491,9 +494,10 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                         log(".");
                         log(entry.ext);
                     }
+                    log("     ");
                     found= TRUE;
                 }else{
-                    int i = 0;
+                    int i = index;
                     // search that folder here 
                     //looping search
                     while(directory_table->table[i].name[0]!='\0'){
@@ -518,8 +522,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                                     // search that file here 
 
                                     //print path
-                                    char path[100];
-                                    strcat(path, "/root/");
+                                    strcat(path, "/");
                                     strcat(path, req_temp.name);
                                     strcat(path, "/");
                                     strcat(path, req.name);
@@ -534,6 +537,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                                     }
                                     found_temp= TRUE;
                                     found = TRUE;
+                                    log("     ");
                                 }
                                 index_temp++;
                             }
@@ -547,8 +551,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                     // search that file here 
 
                     //print path
-                    char path[100];
-                    strcat(path, "/root/");
+                    strcat(path, "/");
                     strcat(path, req.name);
                     //print filename
                     log(path);
@@ -560,6 +563,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                         log(entry.ext);
                     }
                     found= TRUE;
+                    log("     ");
                 }
             }
             index++;
