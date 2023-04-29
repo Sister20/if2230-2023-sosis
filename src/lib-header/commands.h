@@ -11,4 +11,8 @@ void mkdir(uint32_t clusterNumber, char* dirName);
 
 void cat(uint32_t clusterNumber, char* fileName, char* fileExt);
 
+int cp(uint32_t clusterNumber, char* sourceFileName, char* destinationFileName);
+
+int rm(uint32_t clusterNumber, char* filePath);
+
 #endif
