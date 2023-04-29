@@ -225,16 +225,17 @@ void mkdir(uint32_t clusterNumber, char *dirName)
     }
 }
 
-void cat(uint32_t clusterNumber, char *fileName, char *fileExt)
+void cat(uint32_t clusterNumber, char *fileName)
 {
     struct ClusterBuffer cbuf[4];
     struct FAT32DriverRequest request = {
         .buf = cbuf,
-        .name = {*fileName},
-        .ext = {*fileExt},
+        .name = {0},
+        .ext = {0},
         .parent_cluster_number = clusterNumber,
         .buffer_size = 4 * CLUSTER_SIZE,
     };
+    strncpy(request.name, fileName, 8);
     int32_t retcode;
     syscall(FS_READ, (uint32_t)&request, (uint32_t)&retcode, 0);
 
@@ -243,7 +244,8 @@ void cat(uint32_t clusterNumber, char *fileName, char *fileExt)
     case 0:
     {
         syscall(TEXT_OUTPUT, (uint32_t) "cat: File read\n", 15, 0xF);
-        // chore: output file contents
+
+        log(cbuf);
         break;
     }
     case 1:
