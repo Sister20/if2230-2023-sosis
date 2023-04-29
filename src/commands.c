@@ -156,18 +156,20 @@ void ls(struct CWDdata cwd_data)
             parse_int(entry.filesize, filesize);
             log("Name           Extension           Filesize(Bytes)\n");
             log(entry.name);
-            for (int i = 0; i < 8 - strlen(entry.name); i++) {
+            int name_len = strlen(entry.name);
+            for (int i = 0; i < 8 - name_len; i++) {
                 log(" ");
             }
             log("        ");
+            int ext_len = strlen(entry.ext);
             if (entry.ext[0] != '\0') {
                 log(entry.ext);
-                for (int i = 0; i < 3 - strlen(entry.ext); i++) {
+                for (int i = 0; i < 3 - ext_len; i++) {
                     log(" ");
                 }
             }
             else {
-                for (int i = 0; i < 3 - strlen(entry.ext); i++) {
+                for (int i = 0; i < 3; i++) {
                     log("-");
                 }
             }
