@@ -520,7 +520,6 @@ void search(struct CWDdata cwd_data, char name[]){
                         log(path);
 
                         log("     ");
-                        // path[100]="\0\0\0\0";
                         strcpy(path, "\0\0\0\0");
                     }
                     cwd_data.prevCluster = cwd_data.currentCluster;
@@ -545,7 +544,6 @@ void search(struct CWDdata cwd_data, char name[]){
                             log(entry.ext);
                         }
                         log("     ");
-                        // path[100]="\0\0\0\0";
                         strcpy(path, "\0\0\0\0");
                     }
                 }
@@ -618,12 +616,15 @@ void mv(struct CWDdata cwd_data, char *src, char *dest){
             }
         }
         else{
-            log("No such folder\n");
+            log("No such file\n");
         }
         return;
     }else if(ext1[0]!='\0' && ext2[0]=='\0'){
         // file to directory
         // change cluster parent?
+        return;
+    }else{
+        log("Can\'t move directory to file\n");
         return;
     }
     //move src file to dest file and remove src file   
