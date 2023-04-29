@@ -191,11 +191,12 @@ void mkdir(uint32_t clusterNumber, char *dirName)
 {
     struct FAT32DriverRequest request = {
         .buf = 0,
-        .name = {*dirName},
+        .name = {0},
         .ext = "\0\0\0",
         .parent_cluster_number = clusterNumber,
         .buffer_size = 0,
     };
+    strcpy(request.name, dirName);
     int32_t retcode;
     syscall(FS_WRITE, (uint32_t)&request, (uint32_t)&retcode, 0);
 
@@ -441,11 +442,11 @@ void whereis(struct CWDdata *cwd_data, char *filename){
             if (i < strlen(filename))
             {
                 name[i] = filename[i];
-            }
+        }
             else
             {
                 name[i] = '\0';
-            }
+    }
             i++;
         }
     }
@@ -482,7 +483,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                 strcat(path, req.name);
                 //print filename
                 log(path);
-                
+
                 //print extension if exist
                 if (entry.ext[0] != '\0')
                 {
@@ -506,7 +507,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                     strncpy(req_temp.name, entry_temp.name, 8);
                     strncpy(req_temp.ext, entry_temp.ext, 3);
                     int retcode_temp = fs_read_dir(req_temp);
-
+                
                     if(retcode_temp==0){
                         bool found_temp = FALSE;
                         int index_temp = 0;
@@ -523,7 +524,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                                 strcat(path, req.name);
                                 //print filename
                                 log(path);
-                                
+
                                 //print extension if exist
                                 if (entry_temp2.ext[0] != '\0')
                                 {
@@ -539,7 +540,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                     i++;
                 }
             }
-
+                                
         }else{
             if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
                 // search that file here 
@@ -550,7 +551,7 @@ void whereis(struct CWDdata *cwd_data, char *filename){
                 strcat(path, req.name);
                 //print filename
                 log(path);
-                
+
                 //print extension if exist
                 if (entry.ext[0] != '\0')
                 {
