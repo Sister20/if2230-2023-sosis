@@ -2,8 +2,14 @@
 #define COMMANDS_H
 #include "stdtype.h"
 #include "fs-syscall.h"
+#include "string.h"
 
-void cd(uint32_t clusterNumber, char* path);
+struct CWDdata {
+    uint32_t currentCluster;
+    char cwdName[8];
+};
+
+int cd(struct CWDdata* cwd_data, char* folderName);
 
 void ls(uint32_t clusterNumber);
 

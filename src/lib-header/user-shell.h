@@ -1,10 +1,8 @@
 #ifndef USER_SHELL_H
 #define USER_SHELL_H
 
-#include "stdtype.h"
-#include "string.h"
-#include "syscall.h"
 #include "commands.h"
+
 
 /**
  * Get character from keyboard input 
