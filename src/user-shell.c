@@ -126,10 +126,13 @@ void commandParser(char *buf)
             split(buf, three_char_cmd, filename, offset);
             if (strcmp(three_char_cmd, "cat\0") == 0)
             {
-                print("Caught command: cat\n", 0xF);
-                print("Caught filename: ", 0xF);
-                print(filename, 0xF);
-                print("\n", 0xF);
+                // print("Caught command: cat\n", 0xF);
+                // print("Caught filename: ", 0xF);
+                // print(filename, 0xF);
+                // print("\n", 0xF);
+
+                cat(cwd_data.currentCluster, filename);
+                log("\n");
             }
         }
         else if (space_index == 5)
@@ -183,19 +186,16 @@ void commandParser(char *buf)
 int main(void)
 {
     struct ClusterBuffer cl = {0};
-    // struct FAT32DriverRequest request = {
-    //     .buf                   = &cl,
-    //     .name                  = "ikanaido",
-    //     .ext                   = "\0\0\0",
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-    //     .buffer_size           = CLUSTER_SIZE,
-    // };
+
+    char* ikanaide = "Nandemonai to kuchi wo tsugunda\nHonto wa chotto ashi wo tometakute\nDakedomo kimi wa haya ashi\nDe sutto mae wo iku kara\nBoku wa sore wo mitsumeteru\n\0";
+    strcpy((char*) cl.buf, ikanaide);
+
     struct FAT32DriverRequest request = {
         .buf = &cl,
         .name = "ikanaide",
         .ext = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size = 0,
+        .buffer_size = CLUSTER_SIZE,
     };
 
     struct ClusterBuffer cbuf[5];

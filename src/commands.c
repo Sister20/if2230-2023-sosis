@@ -245,7 +245,11 @@ void cat(uint32_t clusterNumber, char *fileName)
     {
         syscall(TEXT_OUTPUT, (uint32_t) "cat: File read\n", 15, 0xF);
 
-        // log(cbuf); chore: fix
+        char* content = (char*) cbuf;
+        for (int i = 0; i < strlen(content); i++) {
+            char character = content[i];
+            log(&character);
+        }
         break;
     }
     case 1:
@@ -553,7 +557,7 @@ void search(struct CWDdata cwd_data, char name){
     };
     strncpy(req.name, name, 8);
     strncpy(req.ext, "\0\0\0", 3);
-    // int8_t retcode = fs_read_dir(req);
+    int8_t retcode = fs_read_dir(req);
 
     if(retcode==0){
         // search file
