@@ -94,7 +94,7 @@ void commandParser(char *buf)
                 char first_string_arg[secOffset];
                 char second_string_arg[strlen(args) - secOffset + 1];
                 split(args, first_string_arg, second_string_arg, secOffset);
-                int retcode = cp(cwdCluster, first_string_arg, second_string_arg);
+                int retcode = cp(cwd_data.currentCluster, first_string_arg, second_string_arg);
                 if (retcode == 0) {
                     char success[10] = "Success!\n";
                     print(success, 0xF);
@@ -106,7 +106,7 @@ void commandParser(char *buf)
             else if (strcmp(two_char_cmd, "rm") == 0)
             {
                 print("Caught command: rm\n", 0xF);
-                int retcode = rm(cwdCluster, args);
+                int retcode = rm(cwd_data.currentCluster, args);
                 if (retcode == 0) {
                     char success[10] = "Success!\n";
                     print(success, 0xF);
