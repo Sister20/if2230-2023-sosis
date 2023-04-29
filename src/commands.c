@@ -554,3 +554,61 @@ void search(struct CWDdata cwd_data, char name[]){
         }
     }
 }
+
+void mv(struct CWDdata cwd_data, char *src, char *dest){
+    //split src and dest name
+    char name1[8];
+    char ext1[3];
+    char name2[8];
+    char ext2[3];
+    split_ext(src, name1, ext1);
+    split_ext(dest, name2, ext2);
+
+    struct FAT32DirectoryTable dir_table_src = {0};
+    struct FAT32DriverRequest req_src = {
+            .buf                   = &dir_table_src,
+            .name                  = {0},
+            .ext                   = {0},
+            .parent_cluster_number = cwd_data.currentCluster,
+            .buffer_size           = CLUSTER_SIZE,
+    };
+    strncpy(req_src.name, name1, 8);
+    strncpy(req_src.ext, "\0\0\0", 3);
+    int8_t retcode_src;
+
+    struct FAT32DirectoryTable dir_table_dest = {0};
+    struct FAT32DriverRequest req_dest = {
+            .buf                   = &dir_table_dest,
+            .name                  = {0},
+            .ext                   = {0},
+            .parent_cluster_number = cwd_data.currentCluster,
+            .buffer_size           = CLUSTER_SIZE,
+    };
+    strncpy(req_dest.name, name2, 8);
+    strncpy(req_dest.ext, "\0\0\0", 3);
+    int8_t retcode_dest;
+
+    if(len(ext1)>3 || len(ext2)>3){
+        log("Invalid extension\n");
+        return;
+    }else if(len(name1)>8 || len(name2)>8){
+        log("Invalid filename\n");
+        return;
+    }else if(ext1[0]=='\0' && ext2[0]=='\0'){
+        // directory to directory
+        retcode_src= fs_read_dir(req_src);
+        retcode_dest= fs_read_dir(req_dest);
+        return;
+    }else if(ext1[0]!='\0' && ext2[0]!='\0'){
+        // file to file
+        retcode_src= fs_read(req_src);
+        retcode_dest= fs_read(req_dest);
+        return;
+    }else if(ext1[0]!='\0' && ext2[0]=='\0'){
+        // file to directory
+        // change cluster parent?
+        return;
+    }
+    //move src file to dest file and remove src file   
+
+}
