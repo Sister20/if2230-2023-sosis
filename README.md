@@ -33,11 +33,6 @@ Milestone ini akan berfokus kepada interrupt, simple hardware device driver untu
 * User Mode
 * Shell
 
-
-
-## **Screenshots**
-*TBA*
-
 ## **Technologies Used**
 
 1. [Window Subsytem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install)
@@ -54,6 +49,7 @@ Milestone ini akan berfokus kepada interrupt, simple hardware device driver untu
 1. Kernel
 2. Keyboard
 3. Filesystem
+4. Shell
 
 ## Setup
 
