@@ -73,11 +73,12 @@ user-shell:
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/syscall.c -o syscall.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/fs-syscall.c -o fs-syscall.o
 	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/commands.c -o commands.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdmem.c -o stdmem.o
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
-		user-entry.o user-shell.o string.o syscall.o fs-syscall.o commands.o -o $(OUTPUT_FOLDER)/shell
+		user-entry.o user-shell.o string.o syscall.o fs-syscall.o commands.o stdmem.o -o $(OUTPUT_FOLDER)/shell
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
-		user-entry.o user-shell.o string.o fs-syscall.o syscall.o commands.o -o $(OUTPUT_FOLDER)/shell_elf
+		user-entry.o user-shell.o string.o fs-syscall.o syscall.o commands.o stdmem.o -o $(OUTPUT_FOLDER)/shell_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/shell
 	@rm -f *.o
