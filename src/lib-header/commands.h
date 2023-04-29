@@ -31,6 +31,6 @@ void whereis(struct CWDdata cwd_data, char *filename);
 
 void search(struct CWDdata cwd_data, char name[]);
 
-void mv(struct CWDdata *cwd_data, char *src, char *dest);
+void mv(struct CWDdata cwd_data, char *src, char *dest);
 
 #endif
