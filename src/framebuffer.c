@@ -3,9 +3,10 @@
 #include "lib-header/stdmem.h"
 #include "lib-header/portio.h"
 
-static uint16_t *framebuffer = (uint16_t *)0xB8000;
-static uint8_t cursor_row = 0;
-static uint8_t cursor_col = 0;
+static uint16_t *framebuffer = (uint16_t *) MEMORY_FRAMEBUFFER;
+uint8_t cursor_row = 0;
+uint8_t cursor_col = 0;
+uint8_t cursor_col_threshold = 0;
 static uint8_t foreground_color = 0;
 static uint8_t background_color = 0;
 
@@ -29,7 +30,7 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
 {
     uint16_t attrib = (bg << 4) | (fg & 0x0F);
     volatile uint16_t *where;
-    where = (volatile uint16_t *)0xB8000 + (row * VGA_WIDTH + col);
+    where = (volatile uint16_t *) MEMORY_FRAMEBUFFER + (row * VGA_WIDTH + col);
     *where = c | (attrib << 8);
 }
 

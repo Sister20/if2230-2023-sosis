@@ -2,6 +2,8 @@
 #define _INTERRUPT_H
 
 #include "stdtype.h"
+#include "idt.h"
+#include "fat32.h"
 
 /* -- PIC constants -- */
 
@@ -57,6 +59,7 @@
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
 
+#define PAGE_FAULT       0xE
 
 /**
  * CPURegister, store CPU registers that can be used for interrupt handler / ISRs
@@ -92,8 +95,21 @@ struct InterruptStack {
     uint32_t eflags;
 } __attribute__((packed));
 
+extern struct TSSEntry _interrupt_tss_entry;
 
+/**
+ * TSSEntry, Task State Segment. Used when jumping back to ring 0 / kernel
+ */
+struct TSSEntry {
+    uint32_t prev_tss; // Previous TSS 
+    uint32_t esp0;     // Stack pointer to load when changing to kernel mode
+    uint32_t ss0;      // Stack segment to load when changing to kernel mode
+    // Unused variables
+    uint32_t unused_register[23];
+} __attribute__((packed));
 
+// Set kernel stack in TSS
+void set_tss_kernel_current_stack(void);
 
 
 // Activate PIC mask for keyboard only
@@ -121,5 +137,5 @@ void pic_remap(void);
  * @param info       Information about interrupt that pushed automatically by CPU
  */
 void main_interrupt_handler(struct CPURegister cpu, uint32_t int_number, struct InterruptStack info);
-
+void syscall_kernel(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info);
 #endif

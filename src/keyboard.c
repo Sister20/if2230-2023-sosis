@@ -9,8 +9,6 @@ static struct KeyboardDriverState keyboard_state = {
     .buffer_index = 0,
     .keyboard_buffer = {'\0'}};
 
-static int keyboard_cursor_row = 0;
-static int keyboard_cursor_col = 0;
 
 const char keyboard_scancode_1_to_ascii_map[256] = {
     0,
@@ -303,35 +301,37 @@ void keyboard_isr(void)
   {
     uint8_t scancode = in(KEYBOARD_DATA_PORT);
     char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
-    framebuffer_set_cursor(keyboard_cursor_row, keyboard_cursor_col);
+    framebuffer_set_cursor(cursor_row, cursor_col);
     switch (mapped_char)
     {
     case 0:
-      framebuffer_write(keyboard_cursor_row, keyboard_cursor_col, ' ', 0xF, 0);
+      framebuffer_write(cursor_row, cursor_col, ' ', 0xF, 0);
       break;
     case '\b':
-      if (keyboard_state.buffer_index > 0)
-      {
-        keyboard_state.buffer_index--;
-      }
-      
-      framebuffer_write(keyboard_cursor_row, keyboard_cursor_col, ' ', 0xF, 0);
-      if (keyboard_cursor_row != 0 || keyboard_cursor_col != 0)
-      {
-        if (keyboard_cursor_col == 0)
+      if (cursor_col > cursor_col_threshold) {
+        if (keyboard_state.buffer_index > 0)
         {
-          keyboard_cursor_row = keyboard_cursor_row - 1;
-          keyboard_cursor_col = VGA_WIDTH - 1;
+          keyboard_state.buffer_index--;
         }
-        else
-          keyboard_cursor_col = keyboard_cursor_col - 1;
+        
+        framebuffer_write(cursor_row, cursor_col, ' ', 0xF, 0);
+        if (cursor_row != 0 || cursor_col != 0)
+        {
+          if (cursor_col == 0)
+          {
+            cursor_row = cursor_row - 1;
+            cursor_col = VGA_WIDTH - 1;
+          }
+          else
+            cursor_col = cursor_col - 1;
+        }
       }
       break;
 
     case '\n':
-      if (keyboard_cursor_row < VGA_HEIGHT - 1) {
-        keyboard_cursor_row++;
-        keyboard_cursor_col = 0;
+      if (cursor_row < VGA_HEIGHT - 1) {
+        cursor_row++;
+        cursor_col = 0;
         keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = '\0';
         keyboard_state.buffer_index = 0;
         keyboard_state_deactivate();
@@ -345,20 +345,35 @@ void keyboard_isr(void)
         keyboard_state.buffer_index++;
       }
       
-      framebuffer_write(keyboard_cursor_row, keyboard_cursor_col, mapped_char, 0xF, 0);
-      if (keyboard_cursor_col == VGA_WIDTH - 1)
+      framebuffer_write(cursor_row, cursor_col, mapped_char, 0xF, 0);
+      if (cursor_col == VGA_WIDTH - 1)
       {
-        if (keyboard_cursor_row < VGA_HEIGHT - 1) {
-          keyboard_cursor_row = keyboard_cursor_row + 1;
-          keyboard_cursor_col = 0;
+        if (cursor_row < VGA_HEIGHT - 1) {
+          cursor_row = cursor_row + 1;
+          cursor_col = 0;
         }
       }
       else {
-        keyboard_cursor_col = keyboard_cursor_col + 1;
+        cursor_col = cursor_col + 1;
       }
     }
 
-    framebuffer_set_cursor(keyboard_cursor_row, keyboard_cursor_col);
+    framebuffer_set_cursor(cursor_row, cursor_col);
   }
   pic_ack(IRQ_KEYBOARD);
+}
+
+void puts(char* ebx, uint32_t ecx, uint32_t edx) {
+  for (tssize_t i = 0; i < ecx; i++) {
+    if (ebx[i] == '\n') {
+      cursor_row++;
+      cursor_col = 0;
+    } else {
+      framebuffer_write(cursor_row, cursor_col + i, ebx[i], edx, 0);
+      if(i == ecx - 1) {
+        cursor_col = cursor_col + ecx;
+      }
+    }
+  }
+  cursor_col_threshold = cursor_col;
 }

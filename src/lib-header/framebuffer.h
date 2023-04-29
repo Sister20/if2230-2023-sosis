@@ -3,12 +3,16 @@
 
 #include "lib-header/stdtype.h"
 
-#define MEMORY_FRAMEBUFFER (uint8_t *) 0xB8000
+#define MEMORY_FRAMEBUFFER (uint8_t *)  0xC00B8000
 #define CURSOR_PORT_CMD    0x03D4
 #define CURSOR_PORT_DATA   0x03D5
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
+
+extern uint8_t cursor_row;
+extern uint8_t cursor_col;
+extern uint8_t cursor_col_threshold;
 
 /**
  * Terminal framebuffer

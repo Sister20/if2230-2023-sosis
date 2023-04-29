@@ -41,6 +41,7 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/disk.c -o $(OUTPUT_FOLDER)/disk.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/rtc.c -o $(OUTPUT_FOLDER)/rtc.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/paging.c -o $(OUTPUT_FOLDER)/paging.o
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
 	@rm -f *.o
@@ -59,3 +60,29 @@ DISK_NAME      = storage
 disk:
 	@qemu-img create -f raw $(OUTPUT_FOLDER)/$(DISK_NAME).bin 4M
 	
+inserter:
+	@$(CC) -Wno-builtin-declaration-mismatch -g \
+		$(SOURCE_FOLDER)/stdmem.c $(SOURCE_FOLDER)/fat32-no-cmos.c \
+		$(SOURCE_FOLDER)/external-inserter.c \
+		-o $(OUTPUT_FOLDER)/inserter
+
+user-shell:
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/user-entry.s -o user-entry.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user-shell.c -o user-shell.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/string.c -o string.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/syscall.c -o syscall.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/fs-syscall.c -o fs-syscall.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/commands.c -o commands.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/stdmem.c -o stdmem.o
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 \
+		user-entry.o user-shell.o string.o syscall.o fs-syscall.o commands.o stdmem.o -o $(OUTPUT_FOLDER)/shell
+	@echo Linking object shell object files and generate flat binary...
+	@$(LIN) -T $(SOURCE_FOLDER)/user-linker.ld -melf_i386 --oformat=elf32-i386\
+		user-entry.o user-shell.o string.o fs-syscall.o syscall.o commands.o stdmem.o -o $(OUTPUT_FOLDER)/shell_elf
+	@echo Linking object shell object files and generate ELF32 for debugging...
+	@size --target=binary bin/shell
+	@rm -f *.o
+
+insert-shell: inserter user-shell
+	@echo Inserting shell into root directory...
+	@cd $(OUTPUT_FOLDER); ./inserter shell 2 $(DISK_NAME).bin

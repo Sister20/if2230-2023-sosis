@@ -3,6 +3,10 @@
 #include "lib-header/portio.h"
 #include "lib-header/keyboard.h"
 
+struct TSSEntry _interrupt_tss_entry = {
+    .ss0  = GDT_KERNEL_DATA_SEGMENT_SELECTOR,
+};
+
 void io_wait(void)
 {
     out(0x80, 0);
@@ -54,8 +58,14 @@ void main_interrupt_handler(
 {
     switch (int_number)
     {
-    case 33:
+    case PAGE_FAULT:
+        __asm__("hlt");
+        break;
+    case PIC1_OFFSET + IRQ_KEYBOARD:
         keyboard_isr();
+        break;
+    case 0x30:
+        syscall_kernel(cpu, info);
         break;
     default:
         break;
@@ -66,4 +76,53 @@ void activate_keyboard_interrupt(void)
 {
     out(PIC1_DATA, PIC_DISABLE_ALL_MASK ^ (1 << IRQ_KEYBOARD));
     out(PIC2_DATA, PIC_DISABLE_ALL_MASK);
+}
+
+void set_tss_kernel_current_stack(void) {
+    uint32_t stack_ptr;
+    // Reading base stack frame instead esp
+    __asm__ volatile ("mov %%ebp, %0": "=r"(stack_ptr) : /* <Empty> */);
+    // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
+    _interrupt_tss_entry.esp0 = stack_ptr + 8; 
+}
+
+void syscall_kernel(struct CPURegister cpu, __attribute__((unused)) struct InterruptStack info) {
+    switch (cpu.eax) {
+        case 0: {
+            struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+            *((int8_t*) cpu.ecx) = read(request);
+            break;
+        }
+        case 1: {
+            struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+            *((int8_t*) cpu.ecx) = read_directory(request);
+            break;
+        }
+        case 2: {
+            struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+            *((int8_t*) cpu.ecx) = write(request);
+            break;
+        }
+        case 3: {
+            struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.ebx;
+            *((int8_t*) cpu.ecx) = delete(request);
+            break;
+        }
+        case 4: {
+            keyboard_state_activate();
+            __asm__("sti"); // Due IRQ is disabled when main_interrupt_handler() called
+            while (is_keyboard_blocking());
+            char buf[KEYBOARD_BUFFER_SIZE];
+            get_keyboard_buffer(buf);
+            memcpy((char *) cpu.ebx, buf, cpu.ecx);
+            break;
+        }
+        case 5: {
+            puts((char *) cpu.ebx, cpu.ecx, cpu.edx); // Modified puts() on kernel side
+            break;
+        }
+        default: {
+            break;
+        }
+    }
 }
