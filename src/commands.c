@@ -588,21 +588,38 @@ void mv(struct CWDdata cwd_data, char *src, char *dest){
     strncpy(req_dest.ext, "\0\0\0", 3);
     int8_t retcode_dest;
 
-    if(len(ext1)>3 || len(ext2)>3){
+    if(strlen(ext1)>3 || strlen(ext2)>3){
         log("Invalid extension\n");
         return;
-    }else if(len(name1)>8 || len(name2)>8){
+    }else if(strlen(name1)>8 || strlen(name2)>8){
         log("Invalid filename\n");
         return;
     }else if(ext1[0]=='\0' && ext2[0]=='\0'){
         // directory to directory
         retcode_src= fs_read_dir(req_src);
         retcode_dest= fs_read_dir(req_dest);
+        if(retcode_src==0){
+            if(retcode_dest==2){
+                //ganti table :D
+            }
+        }
+        else{
+            log("No such folder\n");
+        }
         return;
     }else if(ext1[0]!='\0' && ext2[0]!='\0'){
         // file to file
         retcode_src= fs_read(req_src);
         retcode_dest= fs_read(req_dest);
+        if(retcode_src==0){
+            if(retcode_dest==0){
+                cp(cwd_data, name1, name2);
+                rm(cwd_data, name1);
+            }
+        }
+        else{
+            log("No such folder\n");
+        }
         return;
     }else if(ext1[0]!='\0' && ext2[0]=='\0'){
         // file to directory

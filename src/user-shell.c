@@ -110,7 +110,18 @@ void commandParser(char *buf)
             }
             else if (strcmp(two_char_cmd, "mv") == 0)
             {
-                print("Caught command: mv\n", 0xF);
+                int count = 0;
+                for(int i = 0; i< strlen(args); i++){
+                    if(args[i] == ' '){
+                        break;
+                    }
+                    count++;
+                }
+                int secOffset = count+1;
+                char first_string_arg[secOffset];
+                char second_string_arg[strlen(args) - secOffset + 1];
+                split(args, first_string_arg, second_string_arg, secOffset);
+                mv(cwd_data, first_string_arg, second_string_arg);
             }
             else
             {
