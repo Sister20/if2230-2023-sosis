@@ -137,10 +137,6 @@ void commandParser(char *buf)
             split(buf, three_char_cmd, filename, offset);
             if (strcmp(three_char_cmd, "cat\0") == 0)
             {
-                // print("Caught command: cat\n", 0xF);
-                // print("Caught filename: ", 0xF);
-                // print(filename, 0xF);
-                // print("\n", 0xF);
 
                 cat(cwd_data.currentCluster, filename);
                 log("\n");
@@ -155,10 +151,6 @@ void commandParser(char *buf)
             split(buf, five_char_cmd, dirname, offset);
             if (strcmp(five_char_cmd, "mkdir\0") == 0)
             {
-                // print("Caught command: mkdir\n", 0xF);
-                // print("Caught dirname: ", 0xF);
-                // print(dirname, 0xF);
-                // print("\n", 0xF);
                 mkdir(cwd_data.currentCluster, dirname);
             }
         }
@@ -226,10 +218,6 @@ int main(void)
     syscall(FS_WRITE, (uint32_t)&request, (uint32_t)&retcode, 0);
 
     syscall(FS_WRITE, (uint32_t)&request2, (uint32_t)&retcode, 0);
-    if (retcode == 0)
-    {
-        syscall(5, (uint32_t) "owo\n", 4, 0xF);
-    }
 
     char buf[26];
     while (TRUE)
