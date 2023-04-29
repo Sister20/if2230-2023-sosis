@@ -65,7 +65,6 @@ void commandParser(char *buf)
             }
             else if (strcmp(two_char_cmd, "cp") == 0)
             {
-                print("Caught command: cp\n", 0xF);
                 int count = 0;
                 for(int i = 0; i< strlen(args); i++){
                     if(args[i] == ' '){
@@ -77,25 +76,36 @@ void commandParser(char *buf)
                 char first_string_arg[secOffset];
                 char second_string_arg[strlen(args) - secOffset + 1];
                 split(args, first_string_arg, second_string_arg, secOffset);
-                int retcode = cp(cwd_data.currentCluster, first_string_arg, second_string_arg);
-                if (retcode == 0) {
-                    char success[10] = "Success!\n";
-                    print(success, 0xF);
-                } else {
-                    char failed[7] = "Fail!\n";
-                    print(failed, 0xF);
+                int retcode = cp(cwd_data, first_string_arg, second_string_arg);
+                if (retcode == 1) {
+                    char * directoryNotFound = "Directory not found\n";
+                    print(directoryNotFound, 0x4);
+                } else if (retcode == 2) {
+                    char * fileNotFound = "File not found\n";
+                    print(fileNotFound, 0x4);
+                } else if (retcode == 3) {
+                    char * failedToReadFile = "Failed to Read File\n";
+                    print(failedToReadFile, 0x4);
+                } else if (retcode == 4) {
+                    char * failedToWriteFile = "Failed to Write File\n";
+                    print(failedToWriteFile, 0x4);
                 }
             }
             else if (strcmp(two_char_cmd, "rm") == 0)
             {
-                print("Caught command: rm\n", 0xF);
-                int retcode = rm(cwd_data.currentCluster, args);
-                if (retcode == 0) {
-                    char success[10] = "Success!\n";
-                    print(success, 0xF);
-                } else {
-                    char failed[7] = "Fail!\n";
-                    print(failed, 0xF);
+                int retcode = rm(cwd_data, args);
+                if (retcode == 1) {
+                    char * directoryNotFound = "Directory not found\n";
+                    print(directoryNotFound, 0x4);
+                } else if (retcode == 2) {
+                    char * fileNotFound = "File not found\n";
+                    print(fileNotFound, 0x4);
+                } else if (retcode == 3) {
+                    char * failedToReadFile = "Failed to Read File\n";
+                    print(failedToReadFile, 0x4);
+                } else if (retcode == 4) {
+                    char * failedToDeleteFile = "Failed to Delete File\n";
+                    print(failedToDeleteFile, 0x4);
                 }
             }
             else if (strcmp(two_char_cmd, "mv") == 0)
@@ -188,9 +198,23 @@ int main(void)
         .buffer_size = 0,
     };
 
-    // write(request);  // Create folder "ikanaide"
+    struct ClusterBuffer cbuf[5];
+    for (uint32_t i = 0; i < 5; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = i + 'a';
+
+    struct FAT32DriverRequest request2 = {
+        .buf                   = cbuf,
+        .name                  = "file\0\0\0\0",
+        .ext                   = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 5*CLUSTER_SIZE,
+    } ;
+
     int32_t retcode;
     syscall(FS_WRITE, (uint32_t)&request, (uint32_t)&retcode, 0);
+
+    syscall(FS_WRITE, (uint32_t)&request2, (uint32_t)&retcode, 0);
     if (retcode == 0)
     {
         syscall(5, (uint32_t) "owo\n", 4, 0xF);

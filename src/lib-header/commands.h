@@ -23,9 +23,9 @@ void mkdir(uint32_t clusterNumber, char* dirName);
 
 void cat(uint32_t clusterNumber, char* fileName);
 
-int cp(uint32_t clusterNumber, char* sourceFileName, char* destinationFileName);
+int cp(struct CWDdata cwd_data, char* sourceFileName, char* destinationFileName);
 
-int rm(uint32_t clusterNumber, char* filePath);
+int rm(struct CWDdata cwd_data, char* filePath);
 
 void whereis(struct CWDdata cwd_data, char *filename);
 

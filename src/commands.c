@@ -271,15 +271,20 @@ void cat(uint32_t clusterNumber, char *fileName)
     }
 }
 
-int cp(uint32_t clusterNumber, char *sourceFileName, char *destinationFileName)
+int cp(struct CWDdata cwd_data, char *sourceFileName, char *destinationFileName)
 {
+    struct FAT32DirectoryTable dummy_read_dir_request;
+    memset(&dummy_read_dir_request, 0, sizeof(dummy_read_dir_request));
     struct FAT32DriverRequest dirRequest = {
-        .buf = (uint8_t *)0,
-        .name = "",
-        .ext = "",
-        .parent_cluster_number = clusterNumber,
-        .buffer_size = 0,
+        .buf = &dummy_read_dir_request,
+        .name = {0},
+        .ext = {0},
+        .parent_cluster_number = cwd_data.currentCluster,
+        .buffer_size = CLUSTER_SIZE,
     };
+
+    strncpy(dirRequest.name, cwd_data.cwdName, 8);
+    strncpy(dirRequest.ext, "\0\0\0", 3);
 
     tssize_t dirReadResult = fs_read_dir(dirRequest);
 
@@ -288,7 +293,8 @@ int cp(uint32_t clusterNumber, char *sourceFileName, char *destinationFileName)
         return 1;
     }
 
-    struct FAT32DirectoryEntry sourceFileEntry = {0};
+    char ext[3];
+    uint32_t filesize;
     struct FAT32DirectoryTable *dirtable = (struct FAT32DirectoryTable *)dirRequest.buf;
     int getData = -1;
     for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
@@ -299,9 +305,10 @@ int cp(uint32_t clusterNumber, char *sourceFileName, char *destinationFileName)
             break;
         }
         if (entry.attribute != ATTR_SUBDIRECTORY &&
-            strcmp(dirtable->table->name, sourceFileName) == 0)
+            strcmp(entry.name, sourceFileName) == 0)
         {
-            sourceFileEntry = entry;
+            strncpy(ext, entry.ext, 3);
+            filesize = entry.filesize;
             getData = 1;
             break;
         }
@@ -312,18 +319,20 @@ int cp(uint32_t clusterNumber, char *sourceFileName, char *destinationFileName)
         return 2;
     }
 
+    struct ClusterBuffer dummy_read_request[filesize/sizeof(struct ClusterBuffer)];
     struct FAT32DriverRequest readRequest = {
-        .buf = (uint8_t *)0,
+        .buf = &dummy_read_request,
         .name = {0},
         .ext = {0},
-        .parent_cluster_number = clusterNumber,
-        .buffer_size = sourceFileEntry.filesize,
+        .parent_cluster_number = cwd_data.currentCluster,
+        .buffer_size = filesize,
     };
-
-    strcpy(readRequest.name, sourceFileEntry.name);
-    strcpy(readRequest.ext, sourceFileEntry.ext);
+    
+    strncpy(readRequest.name, sourceFileName, 8);
+    strncpy(readRequest.ext, ext, 3);
 
     tssize_t readResult = fs_read(readRequest);
+
     if (readResult != 0)
     {
         return 3;
@@ -333,12 +342,12 @@ int cp(uint32_t clusterNumber, char *sourceFileName, char *destinationFileName)
         .buf = readRequest.buf,
         .name = {0},
         .ext = {0},
-        .parent_cluster_number = clusterNumber,
+        .parent_cluster_number = readRequest.parent_cluster_number,
         .buffer_size = readRequest.buffer_size,
     };
 
-    strcpy(writeRequest.name, destinationFileName);
-    strcpy(writeRequest.ext, readRequest.ext);
+    strncpy(writeRequest.name, destinationFileName, 8);
+    strncpy(writeRequest.ext, readRequest.ext, 3);
 
     tssize_t writeResult = fs_write(writeRequest);
 
@@ -349,15 +358,20 @@ int cp(uint32_t clusterNumber, char *sourceFileName, char *destinationFileName)
     return 0;
 }
 
-int rm(uint32_t clusterNumber, char *fileName)
+int rm(struct CWDdata cwd_data, char *fileName)
 {
+    struct FAT32DirectoryTable dummy_read_dir_request;
+    memset(&dummy_read_dir_request, 0, sizeof(dummy_read_dir_request));
     struct FAT32DriverRequest dirRequest = {
-        .buf = (uint8_t *)0,
+        .buf = &dummy_read_dir_request,
         .name = {0},
         .ext = {0},
-        .parent_cluster_number = clusterNumber,
-        .buffer_size = 0,
+        .parent_cluster_number = cwd_data.currentCluster,
+        .buffer_size = CLUSTER_SIZE,
     };
+
+    strncpy(dirRequest.name, cwd_data.cwdName, 8);
+    strncpy(dirRequest.ext, "\0\0\0", 3);
 
     tssize_t dirReadResult = fs_read_dir(dirRequest);
 
@@ -366,19 +380,22 @@ int rm(uint32_t clusterNumber, char *fileName)
         return 1;
     }
 
-    struct FAT32DirectoryEntry sourceFileEntry = {0};
+    char ext[3];
+    uint32_t filesize;
     struct FAT32DirectoryTable *dirtable = (struct FAT32DirectoryTable *)dirRequest.buf;
     int getData = -1;
     for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++)
     {
         struct FAT32DirectoryEntry entry = dirtable->table[i];
-        // if(entry.name == '\0'){
-        //     break;
-        // }
-        if (entry.attribute != ATTR_SUBDIRECTORY &&
-            strcmp(dirtable->table->name, fileName) == 0)
+        if (entry.name[0] == '\0')
         {
-            sourceFileEntry = entry;
+            break;
+        }
+        if (entry.attribute != ATTR_SUBDIRECTORY &&
+            strcmp(entry.name, fileName) == 0)
+        {
+            strncpy(ext, entry.ext, 3);
+            filesize = entry.filesize;
             getData = 1;
             break;
         }
@@ -389,18 +406,20 @@ int rm(uint32_t clusterNumber, char *fileName)
         return 2;
     }
 
+    struct ClusterBuffer dummy_read_request[filesize/sizeof(struct ClusterBuffer)];
     struct FAT32DriverRequest readRequest = {
-        .buf = (uint8_t *)0,
+        .buf = &dummy_read_request,
         .name = {0},
         .ext = {0},
-        .parent_cluster_number = clusterNumber,
-        .buffer_size = sourceFileEntry.filesize,
+        .parent_cluster_number = cwd_data.currentCluster,
+        .buffer_size = filesize,
     };
-
-    strcpy(readRequest.name, sourceFileEntry.name);
-    strcpy(readRequest.ext, sourceFileEntry.ext);
+    
+    strncpy(readRequest.name, fileName, 8);
+    strncpy(readRequest.ext, ext, 3);
 
     tssize_t readResult = fs_read(readRequest);
+
     if (readResult != 0)
     {
         return 3;
@@ -410,12 +429,12 @@ int rm(uint32_t clusterNumber, char *fileName)
         .buf = readRequest.buf,
         .name = {0},
         .ext = {0},
-        .parent_cluster_number = clusterNumber,
+        .parent_cluster_number = readRequest.parent_cluster_number,
         .buffer_size = readRequest.buffer_size,
     };
 
-    strcpy(deleteRequest.name, fileName);
-    strcpy(deleteRequest.ext, readRequest.ext);
+    strncpy(deleteRequest.name, fileName, 8);
+    strncpy(deleteRequest.ext, readRequest.ext, 3);
 
     tssize_t deleteResult = fs_delete(deleteRequest);
 
@@ -467,7 +486,7 @@ void whereis(struct CWDdata cwd_data, char *filename){
     };
     strncpy(req.name, name, 8);
     strncpy(req.ext, "\0\0\0", 3);
-    int8_t retcode = fs_read_dir(req);
+    // int8_t retcode = fs_read_dir(req);
 
     if(retcode==0){
         // search file

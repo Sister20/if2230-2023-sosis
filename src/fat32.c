@@ -96,7 +96,7 @@ int8_t read_directory(struct FAT32DriverRequest request) {
     return 2;
 }
 
-int8_t read(struct FAT32DriverRequest request) {
+ int8_t read(struct FAT32DriverRequest request) {
     // Read the directory table from the parent cluster number
     read_clusters(&driver_state.dir_table_buf, request.parent_cluster_number, 1);
     for (tssize_t i = 0; i < CLUSTER_SIZE / sizeof(struct FAT32DirectoryEntry); i++) {
