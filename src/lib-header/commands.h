@@ -3,10 +3,12 @@
 #include "stdtype.h"
 #include "fs-syscall.h"
 #include "string.h"
+#include "stdmem.h"
 
 struct CWDdata {
     uint32_t currentCluster;
     char cwdName[8];
+    uint32_t prevCluster;
 };
 
 void print(char *buf, uint8_t color);

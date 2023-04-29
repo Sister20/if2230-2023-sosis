@@ -2,6 +2,7 @@
 
 struct CWDdata cwd_data = {
     .currentCluster = ROOT_CLUSTER_NUMBER,
+    .prevCluster = ROOT_CLUSTER_NUMBER,
     .cwdName = {"\0\0\0\0\0\0\0\0"}};
 
 void fgets(char *buf, tssize_t buf_size)
@@ -11,9 +12,9 @@ void fgets(char *buf, tssize_t buf_size)
 
 void printCWD() {
     print("User@Sosis:\\", 0x2);
-    // if (strcmp(cwd_data.cwdName, "root\0\0\0\0") != 0) {
-    // print(cwd_data.cwdName, 0x2);
-    // }
+    if (strcmp(cwd_data.cwdName, "root\0\0\0\0") != 0) {
+        print(cwd_data.cwdName, 0x2);
+    }
     print("> ", 0x2);
 }
 
@@ -56,10 +57,10 @@ void commandParser(char *buf)
             split(buf, two_char_cmd, args, offset);
             if (strcmp(two_char_cmd, "cd\0") == 0)
             {
-                print("Caught command: cd\n", 0xF);
-                print("Caught dirname: ", 0xF);
-                print(args, 0xF);
-                print("\n", 0xF);
+                // print("Caught command: cd\n", 0xF);
+                // print("Caught dirname: ", 0xF);
+                // print(args, 0xF);
+                // print("\n", 0xF);
                 cd(&cwd_data, args);
             }
             else if (strcmp(two_char_cmd, "ls") == 0)
