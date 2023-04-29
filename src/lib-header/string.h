@@ -43,4 +43,9 @@ void strcat(char *dest, const char *src);
 */
 void split(char* buf, char* first_section, char* second_section, int offset);
 
+/**
+ * @param num numbers
+ * @param str resulting number in string form
+*/
+void parse_int(uint32_t num, char *str);
 #endif
