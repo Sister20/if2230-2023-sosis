@@ -473,16 +473,16 @@ void whereis(struct CWDdata cwd_data, char *filename){
         // search file
         bool found = FALSE;
         uint32_t index = 1;
+        char path[100]="/root\0\0\0\0";
+
         struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)req.buf;
-        while (!found && index < CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)) {
+        while (!found && index < 8*CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)) {
             struct FAT32DirectoryEntry entry = directory_table->table[index];
             if(entry.attribute==ATTR_SUBDIRECTORY){
                 if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
                     // search that file here 
 
                     //print path
-                    char path[100]="";
-                    strcat(path, "/root/");
                     strcat(path, req.name);
                     //print filename
                     log(path);
@@ -521,8 +521,8 @@ void whereis(struct CWDdata cwd_data, char *filename){
                                     // search that file here 
 
                                     //print path
-                                    char path[100]="";
-                                    strcat(path, "/root/");
+            
+            
                                     strcat(path, req_temp.name);
                                     strcat(path, "/");
                                     strcat(path, req.name);
@@ -551,8 +551,6 @@ void whereis(struct CWDdata cwd_data, char *filename){
                     // search that file here 
 
                     //print path
-                    char path[100]="";
-                    strcat(path, "/root/");
                     strcat(path, req.name);
                     //print filename
                     log(path);
