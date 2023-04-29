@@ -113,10 +113,6 @@ int8_t read(struct FAT32DriverRequest request) {
             // Read the file data from the cluster number of the found file
             uint32_t cluster_number = ((uint32_t)entry.cluster_high << 16) | entry.cluster_low;
             int32_t bytes_left_to_read = entry.filesize;
-            // uint16_t date;
-            // get_date(&date);
-            // driver_state.dir_table_buf.table[i].access_date = date;
-            // write_clusters(&driver_state.dir_table_buf, cluster_number, 1);
             uint32_t bytes_to_read = (bytes_left_to_read < CLUSTER_SIZE) ? bytes_left_to_read : CLUSTER_SIZE;
             while (bytes_left_to_read > 0)
             {
@@ -179,15 +175,13 @@ int8_t write(struct FAT32DriverRequest request) {
                 } else {
                     fatIndex = i;
                 }
+                
                 write_clusters(request.buf + written_data, i, 1);
+                written_data += total_bytes > CLUSTER_SIZE ? CLUSTER_SIZE : total_bytes;
                 total_bytes -= CLUSTER_SIZE;
-                written_data += CLUSTER_SIZE;
-                if (total_bytes > CLUSTER_SIZE) {
-                    file_size += CLUSTER_SIZE;
-                } else {
-                    file_size += total_bytes;
-                }
-                if (total_bytes <= 0) {
+                if (total_bytes <= 0)
+                {
+                    file_size = written_data;
                     driver_state.fat_table.cluster_map[prev_cluster_number] = FAT32_FAT_END_OF_FILE;
                     break;
                 } else {
@@ -197,7 +191,6 @@ int8_t write(struct FAT32DriverRequest request) {
             }
         }
         
-        driver_state.fat_table.cluster_map[prev_cluster_number] = FAT32_FAT_END_OF_FILE;
 
         struct FAT32DirectoryEntry new_entry = {0};
 

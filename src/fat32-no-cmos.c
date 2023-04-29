@@ -281,18 +281,11 @@ int8_t write(struct FAT32DriverRequest request)
                     fatIndex = i;
                 }
                 write_clusters(request.buf + written_data, i, 1);
+                written_data += total_bytes > CLUSTER_SIZE ? CLUSTER_SIZE : total_bytes;
                 total_bytes -= CLUSTER_SIZE;
-                written_data += CLUSTER_SIZE;
-                if (total_bytes > CLUSTER_SIZE)
-                {
-                    file_size += CLUSTER_SIZE;
-                }
-                else
-                {
-                    file_size += total_bytes;
-                }
                 if (total_bytes <= 0)
                 {
+                    file_size = written_data;
                     driver_state.fat_table.cluster_map[prev_cluster_number] = FAT32_FAT_END_OF_FILE;
                     break;
                 }
@@ -302,9 +295,6 @@ int8_t write(struct FAT32DriverRequest request)
                 }
                 counter++;
             }
-            // if (total_bytes <= 0) {
-            //     break;
-            // }
         }
 
         struct FAT32DirectoryEntry new_entry = {0};
