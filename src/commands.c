@@ -430,7 +430,7 @@ int rm(uint32_t clusterNumber, char *fileName)
 */
 void whereis(struct CWDdata *cwd_data, char *filename){
     // print filename
-    log(*filename);
+    log(filename);
     log(": ");
 
     char name[8];
@@ -467,101 +467,103 @@ void whereis(struct CWDdata *cwd_data, char *filename){
     strncpy(req.ext, "\0\0\0", 3);
     int8_t retcode = fs_read_dir(req);
 
-    // search file
-    bool found = FALSE;
-    int index = 0;
-    struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)req.buf;
-    while (!found && index < CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)) {
-        struct FAT32DirectoryEntry entry = directory_table->table[index];
-        if(entry.attribute==ATTR_SUBDIRECTORY){
-            if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
-                // search that file here 
+    if(retcode==0){
+        // search file
+        bool found = FALSE;
+        uint32_t index = 0;
+        struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)req.buf;
+        while (!found && index < CLUSTER_SIZE/sizeof(struct FAT32DirectoryEntry)) {
+            struct FAT32DirectoryEntry entry = directory_table->table[index];
+            if(entry.attribute==ATTR_SUBDIRECTORY){
+                if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
+                    // search that file here 
 
-                //print path
-                char path[100];
-                strcat(path, "/root/");
-                strcat(path, req.name);
-                //print filename
-                log(path);
+                    //print path
+                    char path[100];
+                    strcat(path, "/root/");
+                    strcat(path, req.name);
+                    //print filename
+                    log(path);
 
-                //print extension if exist
-                if (entry.ext[0] != '\0')
-                {
-                    log(".");
-                    log(entry.ext);
-                }
-                found= TRUE;
-            }else{
-                int i = 0;
-                // search that folder here 
-                //looping search
-                while(directory_table->table[i].name[0]!='\0'){
-                    struct FAT32DirectoryEntry entry_temp = directory_table->table[i];
-                    struct FAT32DriverRequest req_temp={
-                            .buf                   = &dir_table,
-                            .name                  = {0},
-                            .ext                   = {0},
-                            .parent_cluster_number = (((uint32_t) entry.cluster_high << 16) | entry.cluster_low),
-                            .buffer_size           = CLUSTER_SIZE,
-                    };
-                    strncpy(req_temp.name, entry_temp.name, 8);
-                    strncpy(req_temp.ext, entry_temp.ext, 3);
-                    int retcode_temp = fs_read_dir(req_temp);
-                
-                    if(retcode_temp==0){
-                        bool found_temp = FALSE;
-                        int index_temp = 0;
-                        while(!found_temp){
-                            struct FAT32DirectoryEntry entry_temp2 = directory_table->table[index_temp];
-                            if (strcmp(entry_temp2.name, req.name) == 0 && entry_temp2.undelete) {
-                                // search that file here 
-
-                                //print path
-                                char path[100];
-                                strcat(path, "/root/");
-                                strcat(path, req_temp.name);
-                                strcat(path, "/");
-                                strcat(path, req.name);
-                                //print filename
-                                log(path);
-
-                                //print extension if exist
-                                if (entry_temp2.ext[0] != '\0')
-                                {
-                                    log(".");
-                                    log(entry_temp2.ext);
-                                }
-                                found_temp= TRUE;
-                                found = TRUE;
-                            }
-                            index_temp++;
-                        }
+                    //print extension if exist
+                    if (entry.ext[0] != '\0')
+                    {
+                        log(".");
+                        log(entry.ext);
                     }
-                    i++;
+                    found= TRUE;
+                }else{
+                    int i = 0;
+                    // search that folder here 
+                    //looping search
+                    while(directory_table->table[i].name[0]!='\0'){
+                        struct FAT32DirectoryEntry entry_temp = directory_table->table[i];
+                        struct FAT32DriverRequest req_temp={
+                                .buf                   = &dir_table,
+                                .name                  = {0},
+                                .ext                   = {0},
+                                .parent_cluster_number = (((uint32_t) entry.cluster_high << 16) | entry.cluster_low),
+                                .buffer_size           = CLUSTER_SIZE,
+                        };
+                        strncpy(req_temp.name, entry_temp.name, 8);
+                        strncpy(req_temp.ext, entry_temp.ext, 3);
+                        int retcode_temp = fs_read_dir(req_temp);
+                    
+                        if(retcode_temp==0){
+                            bool found_temp = FALSE;
+                            int index_temp = 0;
+                            while(!found_temp){
+                                struct FAT32DirectoryEntry entry_temp2 = directory_table->table[index_temp];
+                                if (strcmp(entry_temp2.name, req.name) == 0 && entry_temp2.undelete) {
+                                    // search that file here 
+
+                                    //print path
+                                    char path[100];
+                                    strcat(path, "/root/");
+                                    strcat(path, req_temp.name);
+                                    strcat(path, "/");
+                                    strcat(path, req.name);
+                                    //print filename
+                                    log(path);
+
+                                    //print extension if exist
+                                    if (entry_temp2.ext[0] != '\0')
+                                    {
+                                        log(".");
+                                        log(entry_temp2.ext);
+                                    }
+                                    found_temp= TRUE;
+                                    found = TRUE;
+                                }
+                                index_temp++;
+                            }
+                        }
+                        i++;
+                    }
+                }
+                                    
+            }else{
+                if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
+                    // search that file here 
+
+                    //print path
+                    char path[100];
+                    strcat(path, "/root/");
+                    strcat(path, req.name);
+                    //print filename
+                    log(path);
+
+                    //print extension if exist
+                    if (entry.ext[0] != '\0')
+                    {
+                        log(".");
+                        log(entry.ext);
+                    }
+                    found= TRUE;
                 }
             }
-                                
-        }else{
-            if (strcmp(entry.name, req.name) == 0 && entry.undelete) {
-                // search that file here 
-
-                //print path
-                char path[100];
-                strcat(path, "/root/");
-                strcat(path, req.name);
-                //print filename
-                log(path);
-
-                //print extension if exist
-                if (entry.ext[0] != '\0')
-                {
-                    log(".");
-                    log(entry.ext);
-                }
-                found= TRUE;
-            }
+            index++;
         }
-        index++;
     }
     log("\n");
 }
