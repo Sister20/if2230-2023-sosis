@@ -17,7 +17,7 @@ void log(char *buf);
 
 void cd(struct CWDdata* cwd_data, char* folderName);
 
-void ls(uint32_t clusterNumber);
+void ls(struct CWDdata cwd_data);
 
 void mkdir(uint32_t clusterNumber, char* dirName);
 

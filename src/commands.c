@@ -14,8 +14,6 @@ void cd(struct CWDdata *cwd_data, char *folderName)
 {
     // struct ClusterBuffer cl = {0};
     struct FAT32DirectoryTable dt = {0};
-    // char hello[14] = "Hello there!\n";
-    // log(hello);
     char name[8];
     if (strlen(folderName) <= 8)
     {
@@ -38,8 +36,10 @@ void cd(struct CWDdata *cwd_data, char *folderName)
         // return -1;
         log("Wrong folder name!\n");
     }
-
-    if (strcmp(folderName, "..\0") == 0)
+    // log(folderName);
+    // log("\n");
+    char back_route[3] = "..";
+    if (strcmp(folderName, back_route) == 0)
     {
         if (cwd_data->currentCluster == ROOT_CLUSTER_NUMBER)
         {
@@ -132,37 +132,58 @@ void cd(struct CWDdata *cwd_data, char *folderName)
     memset(&dt, 0, sizeof(dt));
 }
 
-// void ls(struct CWDdata cwd_data)
-// {
-//     struct FAT32DriverRequest request = {
-//         .buf = (uint8_t *)0,
-//         .name = {cwd_data.cwdName}, // change this to parent name
-//         .ext = "\0\0\0",
-//         .parent_cluster_number = cwd_data->currentCluster,
-//         .buffer_size = 0,
-//     };
-//     int8_t retcode = fs_read_dir(request);
-//     if (retcode == 0)
-//     {
-//         bool found = FALSE;
-//         int index = 0;
-//         struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)request.buf;
-//         while (!found)
-//         {
-//             struct FAT32DirectoryEntry entry = directory_table->table[index];
-//             if (strcmp(entry.name, request.name) == 0 && entry.attribute == ATTR_SUBDIRECTORY)
-//             {
-//                 // search that folder here then get the cluster number
-//                 cwd_data->currentCluster = (((uint32_t)entry.cluster_high << 16) | entry.cluster_low);
-//                 strcpy(cwd_data->cwdName, entry.name);
-//                 break;
-//             }
-//             index++;
-//         }
-//         // log("Success !\n");
-//     }
-//     return;
-// }
+void ls(struct CWDdata cwd_data)
+{
+    struct FAT32DirectoryTable dt = {0};
+    struct FAT32DriverRequest request = {
+        .buf = &dt,
+        .ext = {0},
+        .name = {0},
+        .parent_cluster_number = cwd_data.currentCluster,
+        .buffer_size = CLUSTER_SIZE,
+    };
+    strncpy(request.name, cwd_data.cwdName, 8);
+    strncpy(request.ext, "\0\0\0", 3);
+    int8_t retcode = fs_read_dir(request);
+    if (retcode == 0)
+    {
+        int index = 0;
+        struct FAT32DirectoryTable *directory_table = (struct FAT32DirectoryTable *)request.buf;
+        while (directory_table->table[index].name[0] != '\0')
+        {
+            struct FAT32DirectoryEntry entry = directory_table->table[index];
+            char filesize[100];
+            parse_int(entry.filesize, filesize);
+            log("Name           Extension           Filesize(Bytes)\n");
+            log(entry.name);
+            for (int i = 0; i < 8 - strlen(entry.name); i++) {
+                log(" ");
+            }
+            log("        ");
+            if (entry.ext[0] != '\0') {
+                log(entry.ext);
+                for (int i = 0; i < 3 - strlen(entry.ext); i++) {
+                    log(" ");
+                }
+            }
+            else {
+                for (int i = 0; i < 3 - strlen(entry.ext); i++) {
+                    log("-");
+                }
+            }
+            log("                ");
+            if (entry.filesize != 0) {
+                log(filesize);
+            } else {
+                log("0");
+            }
+            log("\n");
+            index++;
+        }
+        log("\n");
+    }
+    memset(&dt, 0, sizeof(dt));
+}
 
 void mkdir(uint32_t clusterNumber, char *dirName)
 {
